@@ -1,0 +1,2 @@
+CREATE TYPE "public"."department" AS ENUM('Art and Design', 'Business and Economics', 'Communication Arts', 'Computer Technology and Information Systems', 'Counseling', 'Criminal Justice', 'Educational Foundations and Leadership', 'Health, Human Performance, and Sport', 'History, Politics, and Geography', 'Language and Literature', 'Life Sciences', 'Music', 'Physical Sciences and Mathematics', 'Psychology and Sociology', 'Technology and Applied Science');--> statement-breakpoint
+ALTER TABLE "staff" ADD COLUMN "department" "department";
