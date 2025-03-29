@@ -74,6 +74,9 @@ export const getUser = createMiddleware<Env>(async (c, next) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
         const user = await kindeClient.getUserProfile(manager);
+        if (!user.email.endsWith("@wsc.edu")) {
+            return c.json({ error: "Unauthorized email domain"}, 401)
+        }
         c.set("user", user);
         await next();
     } catch (error) {

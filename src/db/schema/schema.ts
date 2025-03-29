@@ -31,8 +31,8 @@ export const departmentEnum = pgEnum("department", [
 ]);
 
 // Faculty Info Table
-export const staff = pgTable(
-  "staff",
+export const faculty = pgTable(
+  "faculty",
   {
     id: serial("id").primaryKey(),
     name: varchar("name").notNull(),
@@ -55,7 +55,7 @@ export const hoursAvailable = pgTable("hours_available", {
   id: serial("id").primaryKey(),
   facultyId: integer("faculty_id")
     .notNull()
-    .references(() => staff.id, { onDelete: "cascade" }),
+    .references(() => faculty.id, { onDelete: "cascade" }),
   dayOfWeek: varchar("day_of_week", { length: 10 }).notNull(),
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
@@ -66,7 +66,7 @@ export const timeslots = pgTable("timeslots", {
   id: serial("id").primaryKey(),
   facultyId: integer("faculty_id")
     .notNull()
-    .references(() => staff.id, { onDelete: "cascade" }),
+    .references(() => faculty.id, { onDelete: "cascade" }),
   dayOfWeek: varchar("day_of_week", { length: 10 }).notNull(),
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
@@ -78,7 +78,7 @@ export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
   facultyId: integer("faculty_id")
     .notNull()
-    .references(() => staff.id, { onDelete: "cascade" }),
+    .references(() => faculty.id, { onDelete: "cascade" }),
   studentName: text("student_name").notNull(),
   studentEmail: text("student_email").notNull(),
   timeslotId: integer("timeslot_id")
@@ -89,30 +89,30 @@ export const appointments = pgTable("appointments", {
 });
 
 // Relations
-export const facultyRelations = relations(staff, ({ many }) => ({
+export const facultyRelations = relations(faculty, ({ many }) => ({
   hoursAvailable: many(hoursAvailable),
   timeslots: many(timeslots),
   appointments: many(appointments),
 }));
 
 export const hoursRelations = relations(hoursAvailable, ({ one }) => ({
-  faculty: one(staff, {
+  faculty: one(faculty, {
     fields: [hoursAvailable.facultyId],
-    references: [staff.id],
+    references: [faculty.id],
   }),
 }));
 
 export const timeslotRelations = relations(timeslots, ({ one }) => ({
-  faculty: one(staff, {
+  faculty: one(faculty, {
     fields: [timeslots.facultyId],
-    references: [staff.id],
+    references: [faculty.id],
   }),
 }));
 
 export const appointmentRelations = relations(appointments, ({ one }) => ({
-  faculty: one(staff, {
+  faculty: one(faculty, {
     fields: [appointments.facultyId],
-    references: [staff.id],
+    references: [faculty.id],
   }),
   timeslot: one(timeslots, {
     fields: [appointments.timeslotId],
