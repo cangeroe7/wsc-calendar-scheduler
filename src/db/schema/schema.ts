@@ -1,39 +1,37 @@
 import {
-  pgTable,
-  check,
-  serial,
-  text,
-  time,
-  integer,
-  varchar,
-  date,
-  pgEnum,
+    pgTable,
+    check,
+    serial,
+    text,
+    time,
+    integer,
+    varchar,
+    date,
+    pgEnum,
+    timestamp,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 
 export const departmentEnum = pgEnum("department", [
-  "Art and Design",
-  "Business and Economics",
-  "Communication Arts",
-  "Computer Technology and Information Systems",
-  "Counseling",
-  "Criminal Justice",
-  "Educational Foundations and Leadership",
-  "Health, Human Performance, and Sport",
-  "History, Politics, and Geography",
-  "Language and Literature",
-  "Life Sciences",
-  "Music",
-  "Physical Sciences and Mathematics",
-  "Psychology and Sociology",
-  "Technology and Applied Science",
+    "Art and Design",
+    "Business and Economics",
+    "Communication Arts",
+    "Computer Technology and Information Systems",
+    "Counseling",
+    "Criminal Justice",
+    "Educational Foundations and Leadership",
+    "Health, Human Performance, and Sport",
+    "History, Politics, and Geography",
+    "Language and Literature",
+    "Life Sciences",
+    "Music",
+    "Physical Sciences and Mathematics",
+    "Psychology and Sociology",
+    "Technology and Applied Science",
 ]);
 
 // Faculty Info Table
-export const faculty = pgTable(
-  "faculty",
-  {
+export const faculty = pgTable("faculty", {
     id: serial("id").primaryKey(),
     name: varchar("name").notNull(),
     title: varchar("title", { length: 50 }),
@@ -43,79 +41,36 @@ export const faculty = pgTable(
     officeLocation: varchar("office_location", { length: 50 }),
     phone: varchar("phone", { length: 20 }),
     email: text("email").notNull().unique(),
-    timeslotsPerHour: integer("timeslots_per_hour"),
-  },
-  (table) => [
-    check("timeslots_check1", sql`${table.timeslotsPerHour} BETWEEN 1 AND 4`),
-  ],
-);
+});
 
 // Hours Available Table
-export const hoursAvailable = pgTable("hours_available", {
-  id: serial("id").primaryKey(),
-  facultyId: integer("faculty_id")
-    .notNull()
-    .references(() => faculty.id, { onDelete: "cascade" }),
-  dayOfWeek: varchar("day_of_week", { length: 10 }).notNull(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-});
-
-// Timeslots Table
-export const timeslots = pgTable("timeslots", {
-  id: serial("id").primaryKey(),
-  facultyId: integer("faculty_id")
-    .notNull()
-    .references(() => faculty.id, { onDelete: "cascade" }),
-  dayOfWeek: varchar("day_of_week", { length: 10 }).notNull(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("Available"),
-});
+export const AppointmentStatusEnum = pgEnum("appointment_status", [
+    "available",
+    "blocked",
+    "booked",
+]);
 
 // Appointments Table
 export const appointments = pgTable("appointments", {
-  id: serial("id").primaryKey(),
-  facultyId: integer("faculty_id")
-    .notNull()
-    .references(() => faculty.id, { onDelete: "cascade" }),
-  studentName: text("student_name").notNull(),
-  studentEmail: text("student_email").notNull(),
-  timeslotId: integer("timeslot_id")
-    .notNull()
-    .references(() => timeslots.id, { onDelete: "cascade" }),
-  appointmentDate: date("appointment_date").notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("Scheduled"),
+    id: serial("id").primaryKey(),
+    facultyId: integer("faculty_id")
+        .notNull()
+        .references(() => faculty.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    startTime: timestamp("start_time").notNull(),
+    endTime: timestamp("end_time").notNull(),
+    status: AppointmentStatusEnum("status").default("available"),
+    userId: varchar("user_id"),
 });
 
 // Relations
 export const facultyRelations = relations(faculty, ({ many }) => ({
-  hoursAvailable: many(hoursAvailable),
-  timeslots: many(timeslots),
-  appointments: many(appointments),
-}));
-
-export const hoursRelations = relations(hoursAvailable, ({ one }) => ({
-  faculty: one(faculty, {
-    fields: [hoursAvailable.facultyId],
-    references: [faculty.id],
-  }),
-}));
-
-export const timeslotRelations = relations(timeslots, ({ one }) => ({
-  faculty: one(faculty, {
-    fields: [timeslots.facultyId],
-    references: [faculty.id],
-  }),
+    appointments: many(appointments),
 }));
 
 export const appointmentRelations = relations(appointments, ({ one }) => ({
-  faculty: one(faculty, {
-    fields: [appointments.facultyId],
-    references: [faculty.id],
-  }),
-  timeslot: one(timeslots, {
-    fields: [appointments.timeslotId],
-    references: [timeslots.id],
-  }),
+    faculty: one(faculty, {
+        fields: [appointments.facultyId],
+        references: [faculty.id],
+    }),
 }));

@@ -1,0 +1,9 @@
+appointments:
+    * id PK
+    * date
+    * startTimeDate
+    * endTimeDate
+    * facultyId -> references faculty
+        - can find office through this
+    * status -> enum("available", "blocked", "booked")
+    * userId -> references kinde user id (if status is available or blocked userId = null)
