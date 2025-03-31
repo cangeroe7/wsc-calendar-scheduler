@@ -1,16 +1,7 @@
-import {
-    pgTable,
-    check,
-    serial,
-    text,
-    time,
-    integer,
-    varchar,
-    date,
-    pgEnum,
-    timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, serial, text, varchar, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+import { appointments } from "./appointments";
 
 export const departmentEnum = pgEnum("department", [
     "Art and Design",
@@ -43,34 +34,6 @@ export const faculty = pgTable("faculty", {
     email: text("email").notNull().unique(),
 });
 
-// Hours Available Table
-export const AppointmentStatusEnum = pgEnum("appointment_status", [
-    "available",
-    "blocked",
-    "booked",
-]);
-
-// Appointments Table
-export const appointments = pgTable("appointments", {
-    id: serial("id").primaryKey(),
-    facultyId: integer("faculty_id")
-        .notNull()
-        .references(() => faculty.id, { onDelete: "cascade" }),
-    date: date("date").notNull(),
-    startTime: timestamp("start_time").notNull(),
-    endTime: timestamp("end_time").notNull(),
-    status: AppointmentStatusEnum("status").default("available"),
-    userId: varchar("user_id"),
-});
-
-// Relations
 export const facultyRelations = relations(faculty, ({ many }) => ({
     appointments: many(appointments),
-}));
-
-export const appointmentRelations = relations(appointments, ({ one }) => ({
-    faculty: one(faculty, {
-        fields: [appointments.facultyId],
-        references: [faculty.id],
-    }),
 }));

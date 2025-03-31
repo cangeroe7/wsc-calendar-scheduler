@@ -2,10 +2,7 @@ import {
     createKindeServerClient,
     GrantType,
 } from "@kinde-oss/kinde-typescript-sdk";
-import type {
-    SessionManager,
-    UserType,
-} from "@kinde-oss/kinde-typescript-sdk";
+import type { SessionManager, UserType } from "@kinde-oss/kinde-typescript-sdk";
 import { z } from "zod";
 import { Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
@@ -75,7 +72,7 @@ export const getUser = createMiddleware<Env>(async (c, next) => {
         }
         const user = await kindeClient.getUserProfile(manager);
         if (!user.email.endsWith("@wsc.edu")) {
-            return c.json({ error: "Unauthorized email domain"}, 401)
+            return c.json({ error: "Unauthorizedd email domain" }, 401);
         }
         c.set("user", user);
         await next();
@@ -98,4 +95,4 @@ export const validateEmailDomain = createMiddleware<Env>(async (c, next) => {
         console.error(error);
         return c.json({ error: "Unauthorized" }, 401);
     }
-})
+});
