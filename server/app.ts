@@ -9,11 +9,10 @@ const app = new Hono();
 
 app.use("*", logger());
 
-const apiRoutes = app
-  .basePath("/api")
-  .route("/", authRoute)
+const apiRoutes = app.basePath("/api")
   .route("/faculty", facultyRoute)
-  .route("/appointments", appointmentRoute);
+  .route("/appointments", appointmentRoute)
+  .route("/", authRoute);
 
 app.get("*", serveStatic({ root: "./frontend/dist" }));
 app.get("*", serveStatic({ path: "./frontend/dist/index.html" }));

@@ -45,27 +45,6 @@ const currentTeacher = {
 // Mock data for appointments
 const initialAppointments = [
     {
-        id: 1,
-        studentName: "Alice Johnson",
-        date: new Date(2025, 2, 31),
-        time: "10:00 AM - 11:00 AM",
-        status: "confirmed",
-    },
-    {
-        id: 2,
-        studentName: "Bob Williams",
-        date: new Date(2025, 2, 31),
-        time: "02:00 PM - 03:00 PM",
-        status: "confirmed",
-    },
-    {
-        id: 3,
-        studentName: "Charlie Brown",
-        date: new Date(2025, 3, 1),
-        time: "11:00 AM - 12:00 PM",
-        status: "confirmed",
-    },
-    {
         id: 4,
         studentName: "Diana Miller",
         date: new Date(2025, 3, 2),
@@ -266,8 +245,8 @@ function AdminDashboard() {
                                                 key={index}
                                                 variant={date.toDateString() === selectedDate.toDateString() ? "default" : "outline"}
                                                 className={`h-auto flex-col p-3 ${date.toDateString() === selectedDate.toDateString()
-                                                        ? "bg-[#FFC629] text-black hover:bg-[#FFC629]/90"
-                                                        : "border-2"
+                                                    ? "bg-[#FFC629] text-black hover:bg-[#FFC629]/90"
+                                                    : "border-2"
                                                     }`}
                                                 onClick={() => handleDateSelect(date)}
                                             >
@@ -333,8 +312,8 @@ function AdminDashboard() {
                                                 <Button
                                                     variant="outline"
                                                     className={`h-16 w-full ${slot.available
-                                                            ? "bg-green-100 border-green-300 hover:bg-green-200"
-                                                            : "bg-red-100 border-red-300 hover:bg-red-200"
+                                                        ? "bg-green-100 border-green-300 hover:bg-green-200"
+                                                        : "bg-red-100 border-red-300 hover:bg-red-200"
                                                         }`}
                                                     onClick={() => toggleTimeSlotAvailability(slot.id)}
                                                 >
@@ -406,8 +385,8 @@ function AdminDashboard() {
                                                 key={i}
                                                 variant={date.toDateString() === selectedDate.toDateString() ? "default" : "outline"}
                                                 className={`h-auto flex-col p-3 ${date.toDateString() === selectedDate.toDateString()
-                                                        ? "bg-[#FFC629] text-black hover:bg-[#FFC629]/90"
-                                                        : "border-2"
+                                                    ? "bg-[#FFC629] text-black hover:bg-[#FFC629]/90"
+                                                    : "border-2"
                                                     }`}
                                                 onClick={() => handleDateSelect(date)}
                                             >
@@ -500,8 +479,8 @@ function AdminDashboard() {
                                             >
                                                 <span
                                                     className={`text-sm font-medium ${date.toDateString() === new Date().toDateString()
-                                                            ? "h-6 w-6 bg-[#FFC629] text-black rounded-full flex items-center justify-center"
-                                                            : ""
+                                                        ? "h-6 w-6 bg-[#FFC629] text-black rounded-full flex items-center justify-center"
+                                                        : ""
                                                         }`}
                                                 >
                                                     {day > 0 &&
