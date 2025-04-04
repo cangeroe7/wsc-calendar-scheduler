@@ -143,6 +143,76 @@ function Dashboard() {
             .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
     }
 
+    const renderTimeSlots = () => {
+        if (!appointments) {
+            return <div>{"... appointment error ..."}</div>;
+        }
+
+        // Get all appointments for the selected faculty for this week
+        const weekAppointments = appointments?.appointments.filter(
+            (appointment) =>
+                appointment.facultyId === selectedFaculty?.id &&
+                appointment.status === "available" &&
+                weekDates.some((date) => appointment.startTime.toDateString() === date.toDateString()),
+        );
+
+        // Get all unique time slots from the week's appointments
+        const timeSlots = new Set<string>();
+        weekAppointments.forEach((appointment) => {
+            const startTime = formatTime(appointment.startTime);
+            const endTime = formatTime(appointment.endTime);
+            timeSlots.add(`${startTime} - ${endTime}`);
+        });
+
+        // Sort time slots
+        const sortedTimeSlots = Array.from(timeSlots).sort((a, b) => {
+            const timeA = new Date(`01/01/2023 ${a.split(" - ")[0]}`).getTime();
+            const timeB = new Date(`01/01/2023 ${b.split(" - ")[0]}`).getTime();
+            return timeA - timeB;
+        });
+
+        return sortedTimeSlots.map((timeSlot, index) => (
+            <div key={index} className="grid grid-cols-[100px_1fr] divide-x border-t">
+                <div className="p-2 text-sm text-center">{timeSlot}</div>
+                <div className="grid grid-cols-7 divide-x">
+                    {weekDates.map((date, i) => {
+                        // Find appointment for this date and time slot
+                        const appointment = weekAppointments.find((apt) => {
+                            const aptTimeSlot = `${formatTime(apt.startTime)} - ${formatTime(apt.endTime)}`;
+                            return aptTimeSlot === timeSlot && apt.startTime.toDateString() === date.toDateString();
+                        });
+
+                        return (
+                            <div
+                                key={i}
+                                className={`p-2 min-h-[60px] ${appointment ? "cursor-pointer hover:bg-[#FFC629]/10" : ""
+                                    } ${appointment &&
+                                        selectedDate.toDateString() === date.toDateString() &&
+                                        selectedAppointment?.id === appointment.id
+                                        ? "bg-[#FFC629]/20 border border-[#FFC629]"
+                                        : ""
+                                    }`}
+                                onClick={() => {
+                                    if (appointment) {
+                                        handleDateSelect(date);
+                                        handleAppointmentSelect(appointment);
+                                    }
+                                }}
+                            >
+                                {appointment && (
+                                    <div className="text-xs p-1 bg-blue-100 rounded border border-blue-200 text-center">
+                                        Available
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        ));
+    };
+
+
     const dateAppointments = getAppointmentsForDate(selectedDate)
 
     // Event handlers
@@ -350,76 +420,7 @@ function Dashboard() {
                                             </div>
 
                                             {/* Generate time slots for the week view */}
-                                            {(() => {
-                                                // Get all appointments for the selected faculty for this week
-                                                if (!appointments) {
-                                                    return <div>{"... appointment error ..."}</div>
-                                                }
-
-                                                const weekAppointments = appointments?.appointments.filter(
-                                                    (appointment) =>
-                                                        appointment.facultyId === selectedFaculty.id &&
-                                                        appointment.status === "available" &&
-                                                        weekDates.some((date) => appointment.startTime.toDateString() === date.toDateString()),
-                                                )
-
-                                                // Get all unique time slots from the week's appointments
-                                                const timeSlots = new Set<string>()
-                                                weekAppointments.forEach((appointment) => {
-                                                    const startTime = formatTime(appointment.startTime)
-                                                    const endTime = formatTime(appointment.endTime)
-                                                    timeSlots.add(`${startTime} - ${endTime}`)
-                                                })
-
-                                                // Sort time slots
-                                                const sortedTimeSlots = Array.from(timeSlots).sort((a, b) => {
-                                                    const timeA = new Date(`01/01/2023 ${a.split(" - ")[0]}`).getTime()
-                                                    const timeB = new Date(`01/01/2023 ${b.split(" - ")[0]}`).getTime()
-                                                    return timeA - timeB
-                                                })
-
-                                                return sortedTimeSlots.map((timeSlot, index) => (
-                                                    <div key={index} className="grid grid-cols-[100px_1fr] divide-x border-t">
-                                                        <div className="p-2 text-sm text-center">{timeSlot}</div>
-                                                        <div className="grid grid-cols-7 divide-x">
-                                                            {weekDates.map((date, i) => {
-                                                                // Find appointment for this date and time slot
-                                                                const appointment = weekAppointments.find((apt) => {
-                                                                    const aptTimeSlot = `${formatTime(apt.startTime)} - ${formatTime(apt.endTime)}`
-                                                                    return (
-                                                                        aptTimeSlot === timeSlot && apt.startTime.toDateString() === date.toDateString()
-                                                                    )
-                                                                })
-
-                                                                return (
-                                                                    <div
-                                                                        key={i}
-                                                                        className={`p-2 min-h-[60px] ${appointment ? "cursor-pointer hover:bg-[#FFC629]/10" : ""
-                                                                            } ${appointment &&
-                                                                                selectedDate.toDateString() === date.toDateString() &&
-                                                                                selectedAppointment?.id === appointment.id
-                                                                                ? "bg-[#FFC629]/20 border border-[#FFC629]"
-                                                                                : ""
-                                                                            }`}
-                                                                        onClick={() => {
-                                                                            if (appointment) {
-                                                                                handleDateSelect(date)
-                                                                                handleAppointmentSelect(appointment)
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        {appointment && (
-                                                                            <div className="text-xs p-1 bg-blue-100 rounded border border-blue-200 text-center">
-                                                                                Available
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            })()}
+                                            {renderTimeSlots()}
                                         </div>
                                     ) : (
                                         <div className="text-center py-12 text-gray-500">Please select a faculty member first</div>

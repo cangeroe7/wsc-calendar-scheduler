@@ -114,3 +114,15 @@ export const createAppointmentSchema = baseAppointmentInsertSchema
   .refine(endAfterStartValidation.check, endAfterStartValidation.error);
 
 export const selectAppointmentsSchema = createSelectSchema(appointments);
+
+export const selectFacultyAppointments = createSelectSchema(appointments)
+  .pick({
+    startTime: true,
+    endTime: true,
+    status: true,
+  })
+  .partial({
+    startTime: true,
+    endTime: true,
+    status: true,
+  });

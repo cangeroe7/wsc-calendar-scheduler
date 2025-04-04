@@ -1,15 +1,37 @@
 import { Hono } from "hono";
 import { getUser } from "../kinde";
-import { desc, eq, ilike } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, lte } from "drizzle-orm";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
 import { db } from "../db";
-import { departmentEnum, faculty } from "../db/schema/schema";
+import { appointments, departmentEnum, faculty } from "../db/schema/schema";
 
 // Get faculty by department
 export const getDepartmentSchema = z.object({
   department: z.enum(departmentEnum.enumValues),
+});
+
+const querySchema = z.object({
+  startTime: z
+    .string()
+    .optional()
+    .transform((data) => {
+      if (!data) {
+        return undefined;
+      }
+      return new Date(data);
+    }),
+  endTime: z
+    .string()
+    .optional()
+    .transform((data) => {
+      if (!data) {
+        return undefined;
+      }
+      return new Date(data);
+    }),
+  status: z.string().optional(),
 });
 
 export const facultyRoute = new Hono()
@@ -35,11 +57,8 @@ export const facultyRoute = new Hono()
     zValidator("param", getDepartmentSchema),
     async (c) => {
       const { department } = c.req.valid("param");
-      console.log(department);
 
       try {
-        //   const typedDepartment =
-        // department as (typeof departmentEnum.enumValues)[number];
         const departmentFaculty = await db.query.faculty.findMany({
           where: eq(faculty.department, department),
         });
@@ -77,6 +96,10 @@ export const facultyRoute = new Hono()
     }
   })
 
+  .get("/appointments/:id{[0-9]+}", async (c) => {
+    return c.json("very good", 200);
+  })
+
   // Get faculty by id
   .get("/id/:id{[0-9]+}", getUser, async (c) => {
     const id = parseInt(c.req.param("id"));
@@ -87,7 +110,7 @@ export const facultyRoute = new Hono()
       });
 
       if (!facultyMember) {
-        return c.notFound();
+        return c.json({ error: "Faculty not found" }, 404);
       }
 
       return c.json({ facultyMember }, 200);

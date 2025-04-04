@@ -43,7 +43,7 @@ export function SearchBar({
                             <SelectItem value="All Departments">All Departments</SelectItem>
                             {departmentList.map((department) => (
                                 <SelectItem key={department} value={department}>
-                                    {departmentList}
+                                    {department}
                                 </SelectItem>
                             ))}
                         </SelectContent>

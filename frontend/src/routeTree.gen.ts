@@ -15,6 +15,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AboutIndexImport } from './routes/about/index'
+import { Route as DashboardFacultyFacultyIdImport } from './routes/dashboard/faculty/$facultyId'
 
 // Create/Update Routes
 
@@ -39,6 +40,12 @@ const AdminIndexRoute = AdminIndexImport.update({
 const AboutIndexRoute = AboutIndexImport.update({
   id: '/about/',
   path: '/about/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardFacultyFacultyIdRoute = DashboardFacultyFacultyIdImport.update({
+  id: '/dashboard/faculty/$facultyId',
+  path: '/dashboard/faculty/$facultyId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +81,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    '/dashboard/faculty/$facultyId': {
+      id: '/dashboard/faculty/$facultyId'
+      path: '/dashboard/faculty/$facultyId'
+      fullPath: '/dashboard/faculty/$facultyId'
+      preLoaderRoute: typeof DashboardFacultyFacultyIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +106,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +115,26 @@ export interface FileRoutesById {
   '/about/': typeof AboutIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/admin' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/dashboard'
+    | '/dashboard/faculty/$facultyId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/admin' | '/dashboard'
-  id: '__root__' | '/' | '/about/' | '/admin/' | '/dashboard/'
+  to: '/' | '/about' | '/admin' | '/dashboard' | '/dashboard/faculty/$facultyId'
+  id:
+    | '__root__'
+    | '/'
+    | '/about/'
+    | '/admin/'
+    | '/dashboard/'
+    | '/dashboard/faculty/$facultyId'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +143,7 @@ export interface RootRouteChildren {
   AboutIndexRoute: typeof AboutIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardFacultyFacultyIdRoute: typeof DashboardFacultyFacultyIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +151,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutIndexRoute: AboutIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardFacultyFacultyIdRoute: DashboardFacultyFacultyIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +167,8 @@ export const routeTree = rootRoute
         "/",
         "/about/",
         "/admin/",
-        "/dashboard/"
+        "/dashboard/",
+        "/dashboard/faculty/$facultyId"
       ]
     },
     "/": {
@@ -151,6 +182,9 @@ export const routeTree = rootRoute
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
+    },
+    "/dashboard/faculty/$facultyId": {
+      "filePath": "dashboard/faculty/$facultyId.tsx"
     }
   }
 }

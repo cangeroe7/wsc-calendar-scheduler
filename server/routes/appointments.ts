@@ -8,25 +8,9 @@ import { appointments } from "../db/schema/appointments";
 import {
   createAppointmentSchema,
   insertAppointmentSchema,
+  selectFacultyAppointments,
 } from "../db/schema/appointmentSchema";
 import { db } from "../db";
-
-const getFacultyAppointmentsSchema = z.object({
-  startDate: z
-    .date()
-    .refine((date) => {
-      const d = new Date(date);
-      return !isNaN(d.getTime());
-    })
-    .optional(),
-  endDate: z
-    .date()
-    .refine((date) => {
-      const d = new Date(date);
-      return !isNaN(d.getTime());
-    })
-    .optional(),
-});
 
 const getUserAppointmentsSchema = z.object({
   startDate: z
@@ -67,16 +51,14 @@ export const appointmentRoute = new Hono()
   // Get appointments for faculty member
   .get(
     "/faculty/:id{[0-9]+}",
-    getUser,
-    zValidator("json", getFacultyAppointmentsSchema),
     async (c) => {
+      console.log("hello");
       const facultyId = parseInt(c.req.param("id"));
-      const { startDate, endDate } = c.req.valid("json");
 
       const conditions = [eq(appointments.facultyId, facultyId)];
 
-      if (startDate) conditions.push(gte(appointments.startTime, startDate));
-      if (endDate) conditions.push(lte(appointments.startTime, endDate));
+      if (startTime) conditions.push(gte(appointments.startTime, startTime));
+      if (endTime) conditions.push(lte(appointments.startTime, endTime));
 
       try {
         const appointmentList = await db.query.appointments.findMany({
