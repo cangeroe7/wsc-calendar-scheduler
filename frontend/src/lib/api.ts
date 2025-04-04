@@ -29,7 +29,11 @@ export async function getFacultyAppointments(
 ) {
   const res = await api.appointments.faculty[":id{[0-9]+}"].$get({
     param: { id: facultyId.toString() },
-    json: value,
+    query: {
+      startTime: value.startTime ? value.startTime.toISOString() : undefined,
+      endTime: value.endTime ? value.endTime.toISOString() : undefined,
+      status: value.status ? value.status.toString() : undefined,
+    },
   });
 
   if (!res.ok) {
@@ -37,7 +41,18 @@ export async function getFacultyAppointments(
   }
 
   const data = await res.json();
-  return data;
+
+  const appointmentsWithDates = data.appointments.map((appointment) => ({
+    ...appointment,
+    startTime: new Date(appointment.startTime),
+    endTime: new Date(appointment.endTime),
+    createdAt: appointment.createdAt ? new Date(appointment.createdAt) : null,
+  }));
+
+  return {
+    ...data,
+    appointments: appointmentsWithDates,
+  };
 }
 
 export const getFacultyAppointmentsQueryOptions = (
@@ -98,46 +113,6 @@ export const getFacultyByIdQueryOptions = (facultyId: string) =>
   queryOptions({
     queryKey: ["get-faculty-by-id", facultyId],
     queryFn: () => getFacultyById(facultyId),
-  });
-
-export async function appointmentsForFaculty(
-  facultyId: number,
-  startDate?: Date,
-  endDate?: Date,
-) {
-  const res = await api.appointments.faculty[":id{[0-9]+}"].$get({
-    param: {
-      id: facultyId.toString(),
-    },
-    json: {
-      startTime: startDate,
-      endTime: endDate,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("server error");
-  }
-
-  const data = await res.json();
-
-  const appointmentsWithDates = data.appointments.map((appointment) => ({
-    ...appointment,
-    startTime: new Date(appointment.startTime),
-    endTime: new Date(appointment.endTime),
-    createdAt: appointment.createdAt ? new Date(appointment.createdAt) : null,
-  }));
-
-  return {
-    ...data,
-    appointments: appointmentsWithDates,
-  };
-}
-
-export const appointmentsForFacultyQueryOptions = (facultyId: number) =>
-  queryOptions({
-    queryKey: ["appointments-for-faculty", facultyId],
-    queryFn: () => appointmentsForFaculty(facultyId),
   });
 
 export async function createAppointment({

@@ -7,6 +7,9 @@ import { z } from "zod";
 import { Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import { faculty } from "./db/schema/faculty";
 
 const KindeEnv = z.object({
     KINDE_DOMAIN: z.string(),
@@ -79,6 +82,29 @@ export const getUser = createMiddleware<Env>(async (c, next) => {
     } catch (error) {
         console.error(error);
         return c.json({ error: "Unauthorized" }, 401);
+    }
+});
+
+export const facultyExists = createMiddleware<Env>(async (c, next) => {
+    const facultyIdStr = c.req.param("id");
+
+    if (!facultyIdStr) {
+        return c.json("Faculty not found", 404);
+    }
+
+    const facultyId = parseInt(facultyIdStr);
+
+    try {
+        const facultyMember = await db.query.faculty.findFirst({
+            where: eq(faculty.id, facultyId),
+        });
+
+        if (!facultyMember) {
+            return c.json("Faculty not found");
+        }
+        await next();
+    } catch (error) {
+        return c.json("Internal server error", 500);
     }
 });
 

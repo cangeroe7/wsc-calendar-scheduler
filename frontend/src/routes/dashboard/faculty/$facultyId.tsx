@@ -7,7 +7,7 @@ import { BookingDialog } from '@/components/BookingDialog'
 
 import { formatDate, formatTime } from '@/lib/utils'
 
-import { appointmentsForFaculty, getFacultyByIdQueryOptions, getFacultyAppointmentsQueryOptions } from '@/lib/api'
+import { getFacultyByIdQueryOptions, getFacultyAppointmentsQueryOptions } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import type { Appointment, SelectFacultyAppointments } from '@server/sharedTypes'
 
