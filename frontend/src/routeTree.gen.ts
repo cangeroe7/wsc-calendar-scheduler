@@ -15,7 +15,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AboutIndexImport } from './routes/about/index'
-import { Route as DashboardFacultyFacultyIdImport } from './routes/dashboard/faculty/$facultyId'
+import { Route as DashboardScheduleFacultyIdImport } from './routes/dashboard/schedule/$facultyId'
 
 // Create/Update Routes
 
@@ -43,11 +43,13 @@ const AboutIndexRoute = AboutIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const DashboardFacultyFacultyIdRoute = DashboardFacultyFacultyIdImport.update({
-  id: '/dashboard/faculty/$facultyId',
-  path: '/dashboard/faculty/$facultyId',
-  getParentRoute: () => rootRoute,
-} as any)
+const DashboardScheduleFacultyIdRoute = DashboardScheduleFacultyIdImport.update(
+  {
+    id: '/dashboard/schedule/$facultyId',
+    path: '/dashboard/schedule/$facultyId',
+    getParentRoute: () => rootRoute,
+  } as any,
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -81,11 +83,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard/faculty/$facultyId': {
-      id: '/dashboard/faculty/$facultyId'
-      path: '/dashboard/faculty/$facultyId'
-      fullPath: '/dashboard/faculty/$facultyId'
-      preLoaderRoute: typeof DashboardFacultyFacultyIdImport
+    '/dashboard/schedule/$facultyId': {
+      id: '/dashboard/schedule/$facultyId'
+      path: '/dashboard/schedule/$facultyId'
+      fullPath: '/dashboard/schedule/$facultyId'
+      preLoaderRoute: typeof DashboardScheduleFacultyIdImport
       parentRoute: typeof rootRoute
     }
   }
@@ -98,7 +100,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
+  '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -106,7 +108,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
+  '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
 }
 
 export interface FileRoutesById {
@@ -115,7 +117,7 @@ export interface FileRoutesById {
   '/about/': typeof AboutIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/faculty/$facultyId': typeof DashboardFacultyFacultyIdRoute
+  '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
 }
 
 export interface FileRouteTypes {
@@ -125,16 +127,21 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/dashboard'
-    | '/dashboard/faculty/$facultyId'
+    | '/dashboard/schedule/$facultyId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/admin' | '/dashboard' | '/dashboard/faculty/$facultyId'
+  to:
+    | '/'
+    | '/about'
+    | '/admin'
+    | '/dashboard'
+    | '/dashboard/schedule/$facultyId'
   id:
     | '__root__'
     | '/'
     | '/about/'
     | '/admin/'
     | '/dashboard/'
-    | '/dashboard/faculty/$facultyId'
+    | '/dashboard/schedule/$facultyId'
   fileRoutesById: FileRoutesById
 }
 
@@ -143,7 +150,7 @@ export interface RootRouteChildren {
   AboutIndexRoute: typeof AboutIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardFacultyFacultyIdRoute: typeof DashboardFacultyFacultyIdRoute
+  DashboardScheduleFacultyIdRoute: typeof DashboardScheduleFacultyIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -151,7 +158,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutIndexRoute: AboutIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardFacultyFacultyIdRoute: DashboardFacultyFacultyIdRoute,
+  DashboardScheduleFacultyIdRoute: DashboardScheduleFacultyIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -168,7 +175,7 @@ export const routeTree = rootRoute
         "/about/",
         "/admin/",
         "/dashboard/",
-        "/dashboard/faculty/$facultyId"
+        "/dashboard/schedule/$facultyId"
       ]
     },
     "/": {
@@ -183,8 +190,8 @@ export const routeTree = rootRoute
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
     },
-    "/dashboard/faculty/$facultyId": {
-      "filePath": "dashboard/faculty/$facultyId.tsx"
+    "/dashboard/schedule/$facultyId": {
+      "filePath": "dashboard/schedule/$facultyId.tsx"
     }
   }
 }

@@ -1,9 +1,5 @@
 import { Hono } from "hono";
-import {
-  getUser,
-  kindeClient,
-  sessionManager,
-} from "../kinde";
+import { getUser, kindeClient, sessionManager } from "../kinde";
 
 export const authRoute = new Hono()
   .get("/login", async (c) => {
