@@ -32,6 +32,7 @@ export const faculty = pgTable("faculty", {
     officeLocation: varchar("office_location", { length: 50 }),
     phone: varchar("phone", { length: 20 }),
     email: text("email").notNull().unique(),
+    userId: varchar("user_id").unique(),
 });
 
 export const facultyRelations = relations(faculty, ({ many }) => ({

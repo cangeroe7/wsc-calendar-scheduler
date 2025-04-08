@@ -98,10 +98,6 @@ export const createAppointmentSchema = baseAppointmentInsertSchema
         facultyId: true,
         startTime: true,
         endTime: true,
-        status: true,
-    })
-    .partial({
-        status: true,
     })
     .refine(facultyExistsValidation.check, facultyExistsValidation.error)
     .refine(
@@ -117,10 +113,8 @@ export const selectFacultyAppointments = createSelectSchema(appointments)
     .pick({
         startTime: true,
         endTime: true,
-        status: true,
     })
     .partial({
         startTime: true,
         endTime: true,
-        status: true,
     });

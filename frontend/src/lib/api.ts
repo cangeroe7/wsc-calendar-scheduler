@@ -32,7 +32,6 @@ export async function getFacultyAppointments(
     query: {
       startTime: value.startTime ? value.startTime.toISOString() : undefined,
       endTime: value.endTime ? value.endTime.toISOString() : undefined,
-      status: value.status ? value.status.toString() : undefined,
     },
   });
 

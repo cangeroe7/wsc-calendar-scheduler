@@ -6,144 +6,171 @@ import { z } from "zod";
 import { facultyExists, getUser } from "../kinde";
 import { appointments } from "../db/schema/appointments";
 import {
-    createAppointmentSchema,
-    insertAppointmentSchema,
-    selectFacultyAppointments,
+	createAppointmentSchema,
+	insertAppointmentSchema,
+	selectFacultyAppointments,
 } from "../db/schema/appointmentSchema";
 import { db } from "../db";
-
 const getUserAppointmentsSchema = z.object({
-    startDate: z
-        .date()
-        .refine((date) => {
-            const d = new Date(date);
-            return !isNaN(d.getTime());
-        })
-        .optional(),
-    endDate: z
-        .date()
-        .refine((date) => {
-            const d = new Date(date);
-            return !isNaN(d.getTime());
-        })
-        .optional(),
+	startDate: z
+		.date()
+		.refine((date) => {
+			const d = new Date(date);
+			return !isNaN(d.getTime());
+		})
+		.optional(),
+	endDate: z
+		.date()
+		.refine((date) => {
+			const d = new Date(date);
+			return !isNaN(d.getTime());
+		})
+		.optional(),
 });
 
+// Get available times for days
 export const appointmentRoute = new Hono()
 
-    // Get appointment by appointment id
-    .get("/:id{[0-9]+}", async (c) => {
-        const appointmentId = parseInt(c.req.param("id"));
-        console.log(appointmentId);
+	// Get appointment by appointment id
+	.get("/:id{[0-9]+}", async (c) => {
+		const appointmentId = parseInt(c.req.param("id"));
+		console.log(appointmentId);
 
-        try {
-            const appointment = db.query.appointments.findFirst({
-                where: eq(appointments.id, appointmentId),
-            });
+		try {
+			const appointment = db.query.appointments.findFirst({
+				where: eq(appointments.id, appointmentId),
+			});
 
-            return c.json({ appointment }, 200);
-        } catch (error) {
-            console.error(error);
-            return c.json({ error: "Internal server error" }, 500);
-        }
-    })
+			return c.json({ appointment }, 200);
+		} catch (error) {
+			console.error(error);
+			return c.json({ error: "Internal server error" }, 500);
+		}
+	})
 
-    // Get appointments for faculty member
-    .get(
-        "/faculty/:id{[0-9]+}",
-        facultyExists,
-        zValidator("query", selectFacultyAppointments),
-        async (c) => {
-            const facultyId = parseInt(c.req.param("id"));
+	// Get appointments for faculty member
+	.get(
+		"/faculty/:id{[0-9]+}",
+		getUser,
+		facultyExists,
+		zValidator("query", selectFacultyAppointments),
+		async (c) => {
+			const facultyId = parseInt(c.req.param("id"));
 
+			const { startTime, endTime } = c.req.valid("query");
 
-            const { startTime, endTime, status } = c.req.valid("query");
+			const conditions = [eq(appointments.facultyId, facultyId)];
 
-            const conditions = [eq(appointments.facultyId, facultyId)];
+			if (startTime)
+				conditions.push(gte(appointments.startTime, startTime));
+			if (endTime) conditions.push(lte(appointments.startTime, endTime));
 
-            if (startTime) conditions.push(gte(appointments.startTime, startTime));
-            if (endTime) conditions.push(lte(appointments.startTime, endTime));
-            if (status) conditions.push(eq(appointments.status, status));
+			try {
+				const appointmentList = await db.query.appointments.findMany({
+					where: and(...conditions),
+					orderBy: desc(appointments.startTime),
+				});
 
-            try {
-                const appointmentList = await db.query.appointments.findMany({
-                    where: and(...conditions),
-                    orderBy: desc(appointments.startTime),
-                });
+				return c.json(
+					{
+						appointmentsCount: appointmentList.length,
+						appointments: appointmentList,
+					},
+					200,
+				);
+			} catch (error) {
+				console.error(error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
 
-                return c.json(
-                    {
-                        appointmentsCount: appointmentList.length,
-                        appointments: appointmentList,
-                    },
-                    200,
-                );
-            } catch (error) {
-                console.error(error);
-                return c.json({ error: "Internal server error" }, 500);
-            }
-        },
-    )
+	// Get users appointments
+	.get(
+		"/userAppointments",
+		getUser,
+		zValidator("json", getUserAppointmentsSchema),
+		async (c) => {
+			const userId = c.var.user.id;
+			const { startDate, endDate } = c.req.valid("json");
 
-    // Get users appointments
-    .get(
-        "/user/:id",
-        getUser,
-        zValidator("json", getUserAppointmentsSchema),
-        async (c) => {
-            const userId = c.req.param("id");
-            const { startDate, endDate } = c.req.valid("json");
+			const conditions = [eq(appointments.studentId, userId)];
 
-            const conditions = [eq(appointments.userId, userId)];
+			if (startDate)
+				conditions.push(gte(appointments.startTime, startDate));
+			if (endDate) conditions.push(lte(appointments.startTime, endDate));
 
-            if (startDate) conditions.push(gte(appointments.startTime, startDate));
-            if (endDate) conditions.push(lte(appointments.startTime, endDate));
+			try {
+				const appointmentList = await db.query.appointments.findMany({
+					where: and(...conditions),
+					orderBy: desc(appointments.startTime),
+				});
 
-            try {
-                const appointmentList = await db.query.appointments.findMany({
-                    where: and(...conditions),
-                    orderBy: desc(appointments.startTime),
-                });
+				return c.json({
+					appointmentsCount: appointmentList.length,
+					appointments: appointmentList,
+				});
+			} catch (error) {
+				console.error(error);
+				return c.json({ error: "Internal server error" }, 500);
+			}
+		},
+	)
 
-                return c.json({
-                    appointmentsCount: appointmentList.length,
-                    appointments: appointmentList,
-                });
-            } catch (error) {
-                console.error(error);
-                return c.json({ error: "Internal server error" }, 500);
-            }
-        },
-    )
+	// Create an appointment
+	.post(
+		"/",
+		zValidator("json", createAppointmentSchema),
+		getUser,
+		async (c) => {
+			const appointment = c.req.valid("json");
 
-    // get
-    .get("/available")
+			const validatedAppointment =
+				await insertAppointmentSchema.parseAsync({
+					...appointment,
+				});
 
-    // Create an appointment
-    .post("/", zValidator("json", createAppointmentSchema), async (c) => {
-        const appointment = c.req.valid("json");
+			const result = await db
+				.insert(appointments)
+				.values(validatedAppointment)
+				.returning()
+				.then((res) => res[0]);
 
-        const validatedAppointment = await insertAppointmentSchema.parseAsync({
-            ...appointment,
-        });
+			return c.json(result, 201);
+		},
+	)
 
-        const result = await db
-            .insert(appointments)
-            .values(validatedAppointment)
-            .returning()
-            .then((res) => res[0]);
+	// Delete an appointment by id. Returns deleted Appointment
+	.delete("/:id{[0-9]+}", getUser, async (c) => {
+		// TODO: Add check for appointment existence
+		const appointmentId = parseInt(c.req.param("id"));
+		const userId = c.var.user.id;
 
-        return c.json(result, 201);
-    })
+		try {
+			const deletedAppointment = await db
+				.delete(appointments)
+				.where(
+					and(
+						eq(appointments.id, appointmentId),
+						eq(appointments.studentId, userId),
+					),
+				)
+				.returning()
+				.then((res) => res[0]);
 
-    // Update appointment status to booked
-    .patch("book/:id{[0-9]+}") // status = booked, userId = kinde user id
+			if (!deletedAppointment) {
+				return c.json(
+					{
+						success: false,
+						message: "Appointment not found or already deleted",
+					},
+					404,
+				);
+			}
 
-    // Update appointment status to available
-    .patch("cancel/:id{[0-9]+}") // status = available, userId = null
-
-    // Update appointment status to blocked
-    .patch("block/:id{[0-9]+}") // status = blocked, userId = null
-
-    // deletes an appointment
-    .delete("/"); // deleting an appointment, can only be done by faculty should only be done if all of them in that time period should be deleted, not just blocked
+			return c.json({success: true, deletedAppointment}, 200);
+		} catch (error) {
+			console.error(error);
+			return c.json("Internal server error", 500);
+		}
+	});

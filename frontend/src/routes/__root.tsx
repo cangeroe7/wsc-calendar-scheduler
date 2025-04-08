@@ -22,8 +22,11 @@ function NavBar() {
             <Link to="/" className="[&.active]:font-bold">
                 Home
             </Link>{' '}
-            <Link to="/about" className="[&.active]:font-bold">
-                About
+            <Link to="/admin/availability/schedule" className="[&.active]:font-bold">
+                Schedule
+            </Link>
+            <Link to="/admin/availability/schedule/1" className="[&.active]:font-bold">
+                ScheduleID
             </Link>
             <Link to="/dashboard" className="[&.active]:font-bold">
                 Dashboard

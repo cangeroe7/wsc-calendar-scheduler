@@ -36,7 +36,6 @@ export function WeekView({
     const weekAppointments = appointments?.filter(
         (appointment) =>
             appointment.facultyId === facultyId && // Ensure correct faculty
-            appointment.status === "available" &&
             weekDates.some((date) => new Date(appointment.startTime).toDateString() === date.toDateString())
     );
 

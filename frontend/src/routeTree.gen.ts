@@ -11,13 +11,22 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ScheduleIdentifierImport } from './routes/$scheduleIdentifier'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
-import { Route as AboutIndexImport } from './routes/about/index'
+import { Route as AdminMeetingsIndexImport } from './routes/admin/meetings/index'
 import { Route as DashboardScheduleFacultyIdImport } from './routes/dashboard/schedule/$facultyId'
+import { Route as AdminAvailabilityScheduleIndexImport } from './routes/admin/availability/schedule/index'
+import { Route as AdminAvailabilityScheduleScheduleIdImport } from './routes/admin/availability/schedule/$scheduleId'
 
 // Create/Update Routes
+
+const ScheduleIdentifierRoute = ScheduleIdentifierImport.update({
+  id: '/$scheduleIdentifier',
+  path: '/$scheduleIdentifier',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -37,9 +46,9 @@ const AdminIndexRoute = AdminIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AboutIndexRoute = AboutIndexImport.update({
-  id: '/about/',
-  path: '/about/',
+const AdminMeetingsIndexRoute = AdminMeetingsIndexImport.update({
+  id: '/admin/meetings/',
+  path: '/admin/meetings/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -50,6 +59,20 @@ const DashboardScheduleFacultyIdRoute = DashboardScheduleFacultyIdImport.update(
     getParentRoute: () => rootRoute,
   } as any,
 )
+
+const AdminAvailabilityScheduleIndexRoute =
+  AdminAvailabilityScheduleIndexImport.update({
+    id: '/admin/availability/schedule/',
+    path: '/admin/availability/schedule/',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const AdminAvailabilityScheduleScheduleIdRoute =
+  AdminAvailabilityScheduleScheduleIdImport.update({
+    id: '/admin/availability/schedule/$scheduleId',
+    path: '/admin/availability/schedule/$scheduleId',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -62,11 +85,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/about/': {
-      id: '/about/'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutIndexImport
+    '/$scheduleIdentifier': {
+      id: '/$scheduleIdentifier'
+      path: '/$scheduleIdentifier'
+      fullPath: '/$scheduleIdentifier'
+      preLoaderRoute: typeof ScheduleIdentifierImport
       parentRoute: typeof rootRoute
     }
     '/admin/': {
@@ -90,6 +113,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardScheduleFacultyIdImport
       parentRoute: typeof rootRoute
     }
+    '/admin/meetings/': {
+      id: '/admin/meetings/'
+      path: '/admin/meetings'
+      fullPath: '/admin/meetings'
+      preLoaderRoute: typeof AdminMeetingsIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/availability/schedule/$scheduleId': {
+      id: '/admin/availability/schedule/$scheduleId'
+      path: '/admin/availability/schedule/$scheduleId'
+      fullPath: '/admin/availability/schedule/$scheduleId'
+      preLoaderRoute: typeof AdminAvailabilityScheduleScheduleIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin/availability/schedule/': {
+      id: '/admin/availability/schedule/'
+      path: '/admin/availability/schedule'
+      fullPath: '/admin/availability/schedule'
+      preLoaderRoute: typeof AdminAvailabilityScheduleIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -97,68 +141,93 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutIndexRoute
+  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/admin/meetings': typeof AdminMeetingsIndexRoute
+  '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
+  '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutIndexRoute
+  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/admin/meetings': typeof AdminMeetingsIndexRoute
+  '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
+  '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about/': typeof AboutIndexRoute
+  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/admin/meetings/': typeof AdminMeetingsIndexRoute
+  '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
+  '/admin/availability/schedule/': typeof AdminAvailabilityScheduleIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
+    | '/$scheduleIdentifier'
     | '/admin'
     | '/dashboard'
     | '/dashboard/schedule/$facultyId'
+    | '/admin/meetings'
+    | '/admin/availability/schedule/$scheduleId'
+    | '/admin/availability/schedule'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
+    | '/$scheduleIdentifier'
     | '/admin'
     | '/dashboard'
     | '/dashboard/schedule/$facultyId'
+    | '/admin/meetings'
+    | '/admin/availability/schedule/$scheduleId'
+    | '/admin/availability/schedule'
   id:
     | '__root__'
     | '/'
-    | '/about/'
+    | '/$scheduleIdentifier'
     | '/admin/'
     | '/dashboard/'
     | '/dashboard/schedule/$facultyId'
+    | '/admin/meetings/'
+    | '/admin/availability/schedule/$scheduleId'
+    | '/admin/availability/schedule/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutIndexRoute: typeof AboutIndexRoute
+  ScheduleIdentifierRoute: typeof ScheduleIdentifierRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardScheduleFacultyIdRoute: typeof DashboardScheduleFacultyIdRoute
+  AdminMeetingsIndexRoute: typeof AdminMeetingsIndexRoute
+  AdminAvailabilityScheduleScheduleIdRoute: typeof AdminAvailabilityScheduleScheduleIdRoute
+  AdminAvailabilityScheduleIndexRoute: typeof AdminAvailabilityScheduleIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutIndexRoute: AboutIndexRoute,
+  ScheduleIdentifierRoute: ScheduleIdentifierRoute,
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardScheduleFacultyIdRoute: DashboardScheduleFacultyIdRoute,
+  AdminMeetingsIndexRoute: AdminMeetingsIndexRoute,
+  AdminAvailabilityScheduleScheduleIdRoute:
+    AdminAvailabilityScheduleScheduleIdRoute,
+  AdminAvailabilityScheduleIndexRoute: AdminAvailabilityScheduleIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -172,17 +241,20 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about/",
+        "/$scheduleIdentifier",
         "/admin/",
         "/dashboard/",
-        "/dashboard/schedule/$facultyId"
+        "/dashboard/schedule/$facultyId",
+        "/admin/meetings/",
+        "/admin/availability/schedule/$scheduleId",
+        "/admin/availability/schedule/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/about/": {
-      "filePath": "about/index.tsx"
+    "/$scheduleIdentifier": {
+      "filePath": "$scheduleIdentifier.tsx"
     },
     "/admin/": {
       "filePath": "admin/index.tsx"
@@ -192,6 +264,15 @@ export const routeTree = rootRoute
     },
     "/dashboard/schedule/$facultyId": {
       "filePath": "dashboard/schedule/$facultyId.tsx"
+    },
+    "/admin/meetings/": {
+      "filePath": "admin/meetings/index.tsx"
+    },
+    "/admin/availability/schedule/$scheduleId": {
+      "filePath": "admin/availability/schedule/$scheduleId.tsx"
+    },
+    "/admin/availability/schedule/": {
+      "filePath": "admin/availability/schedule/index.tsx"
     }
   }
 }
