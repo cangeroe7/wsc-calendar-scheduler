@@ -16,6 +16,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminMeetingsIndexImport } from './routes/admin/meetings/index'
+import { Route as FacultyIdentifierEventIdentifierIndexImport } from './routes/$facultyIdentifier/$eventIdentifier/index'
 import { Route as DashboardScheduleFacultyIdImport } from './routes/dashboard/schedule/$facultyId'
 import { Route as AdminAvailabilityScheduleIndexImport } from './routes/admin/availability/schedule/index'
 import { Route as AdminAvailabilityScheduleScheduleIdImport } from './routes/admin/availability/schedule/$scheduleId'
@@ -51,6 +52,13 @@ const AdminMeetingsIndexRoute = AdminMeetingsIndexImport.update({
   path: '/admin/meetings/',
   getParentRoute: () => rootRoute,
 } as any)
+
+const FacultyIdentifierEventIdentifierIndexRoute =
+  FacultyIdentifierEventIdentifierIndexImport.update({
+    id: '/$facultyIdentifier/$eventIdentifier/',
+    path: '/$facultyIdentifier/$eventIdentifier/',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 const DashboardScheduleFacultyIdRoute = DashboardScheduleFacultyIdImport.update(
   {
@@ -113,6 +121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardScheduleFacultyIdImport
       parentRoute: typeof rootRoute
     }
+    '/$facultyIdentifier/$eventIdentifier/': {
+      id: '/$facultyIdentifier/$eventIdentifier/'
+      path: '/$facultyIdentifier/$eventIdentifier'
+      fullPath: '/$facultyIdentifier/$eventIdentifier'
+      preLoaderRoute: typeof FacultyIdentifierEventIdentifierIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/admin/meetings/': {
       id: '/admin/meetings/'
       path: '/admin/meetings'
@@ -145,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierIndexRoute
   '/admin/meetings': typeof AdminMeetingsIndexRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
@@ -156,6 +172,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierIndexRoute
   '/admin/meetings': typeof AdminMeetingsIndexRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
@@ -168,6 +185,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
+  '/$facultyIdentifier/$eventIdentifier/': typeof FacultyIdentifierEventIdentifierIndexRoute
   '/admin/meetings/': typeof AdminMeetingsIndexRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule/': typeof AdminAvailabilityScheduleIndexRoute
@@ -181,6 +199,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/dashboard/schedule/$facultyId'
+    | '/$facultyIdentifier/$eventIdentifier'
     | '/admin/meetings'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule'
@@ -191,6 +210,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/dashboard/schedule/$facultyId'
+    | '/$facultyIdentifier/$eventIdentifier'
     | '/admin/meetings'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule'
@@ -201,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/dashboard/schedule/$facultyId'
+    | '/$facultyIdentifier/$eventIdentifier/'
     | '/admin/meetings/'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule/'
@@ -213,6 +234,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardScheduleFacultyIdRoute: typeof DashboardScheduleFacultyIdRoute
+  FacultyIdentifierEventIdentifierIndexRoute: typeof FacultyIdentifierEventIdentifierIndexRoute
   AdminMeetingsIndexRoute: typeof AdminMeetingsIndexRoute
   AdminAvailabilityScheduleScheduleIdRoute: typeof AdminAvailabilityScheduleScheduleIdRoute
   AdminAvailabilityScheduleIndexRoute: typeof AdminAvailabilityScheduleIndexRoute
@@ -224,6 +246,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardScheduleFacultyIdRoute: DashboardScheduleFacultyIdRoute,
+  FacultyIdentifierEventIdentifierIndexRoute:
+    FacultyIdentifierEventIdentifierIndexRoute,
   AdminMeetingsIndexRoute: AdminMeetingsIndexRoute,
   AdminAvailabilityScheduleScheduleIdRoute:
     AdminAvailabilityScheduleScheduleIdRoute,
@@ -245,6 +269,7 @@ export const routeTree = rootRoute
         "/admin/",
         "/dashboard/",
         "/dashboard/schedule/$facultyId",
+        "/$facultyIdentifier/$eventIdentifier/",
         "/admin/meetings/",
         "/admin/availability/schedule/$scheduleId",
         "/admin/availability/schedule/"
@@ -264,6 +289,9 @@ export const routeTree = rootRoute
     },
     "/dashboard/schedule/$facultyId": {
       "filePath": "dashboard/schedule/$facultyId.tsx"
+    },
+    "/$facultyIdentifier/$eventIdentifier/": {
+      "filePath": "$facultyIdentifier/$eventIdentifier/index.tsx"
     },
     "/admin/meetings/": {
       "filePath": "admin/meetings/index.tsx"

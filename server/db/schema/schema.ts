@@ -54,7 +54,10 @@ export const appointments = t.pgTable("appointments", {
 	endTime: t.timestamp("end_time").notNull(),
 	studentId: t.varchar("student_id").unique(),
 	createdAt: t.timestamp("created_at").defaultNow(),
-	updatedAt: t.timestamp("updated_at").defaultNow(),
+	updatedAt: t
+		.timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => sql`now()`),
 });
 
 // Appointment Relations
@@ -66,30 +69,39 @@ export const appointmentRelations = relations(appointments, ({ one }) => ({
 }));
 
 // Appointment Events Table
-export const appointmentEvents = t.pgTable("appointment_event", {
-	id: t.serial("id").primaryKey(),
-	scheduleId: t
-		.integer("schedule_id")
-		.notNull()
-		.references(() => schedules.id),
-	userId: t.varchar("user_id").notNull(),
-	facultyId: t
-		.integer("faculty_id")
-		.notNull()
-		.references(() => faculty.id),
-	name: t.varchar("name"),
-	durationMinutes: t.integer("duration_minutes").notNull().default(30),
-	bookingInterval: t.integer("booking_interval").notNull().default(30),
-	location: t.varchar("location"),
-	description: t.varchar("description", { length: 1000 }),
-	startDate: t.date("start_date"),
-	endDate: t.date("end_date"),
-	createdAt: t.timestamp("created_at").notNull().defaultNow(),
-	updatedAt: t
-		.timestamp("created_at")
-		.notNull()
-		.$onUpdate(() => sql`now()`),
-});
+export const appointmentEvents = t.pgTable(
+	"appointment_event",
+	{
+		id: t.serial("id").primaryKey(),
+		identifier: t.varchar("identifier").notNull(),
+		scheduleId: t
+			.integer("schedule_id")
+			.notNull()
+			.references(() => schedules.id),
+		userId: t.varchar("user_id").notNull(),
+		facultyId: t
+			.integer("faculty_id")
+			.notNull()
+			.references(() => faculty.id),
+		name: t.varchar("name"),
+		durationMinutes: t.integer("duration_minutes").notNull().default(30),
+		bookingInterval: t.integer("booking_interval").notNull().default(30),
+		location: t.varchar("location"),
+		description: t.varchar("description", { length: 1000 }),
+		startDate: t.date("start_date"),
+		endDate: t.date("end_date"),
+		createdAt: t.timestamp("created_at").notNull().defaultNow(),
+		updatedAt: t
+			.timestamp("created_at")
+			.notNull()
+			.$onUpdate(() => sql`now()`),
+	},
+	(table) => [
+		t
+			.uniqueIndex("identifier_faculty_unique")
+			.on(table.identifier, table.facultyId),
+	],
+);
 
 // Appointment Events Relations
 export const appointmentEventsRelations = relations(

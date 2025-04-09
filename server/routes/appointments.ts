@@ -11,6 +11,7 @@ import {
 	selectFacultyAppointments,
 } from "../db/schema/appointmentSchema";
 import { db } from "../db";
+
 const getUserAppointmentsSchema = z.object({
 	startDate: z
 		.date()
@@ -168,7 +169,7 @@ export const appointmentRoute = new Hono()
 				);
 			}
 
-			return c.json({success: true, deletedAppointment}, 200);
+			return c.json({ success: true, deletedAppointment }, 200);
 		} catch (error) {
 			console.error(error);
 			return c.json("Internal server error", 500);

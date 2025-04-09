@@ -34,7 +34,7 @@ export const facultyRoute = new Hono()
 
 	// Get the events for a faculty member. Returns: list of events
 	.get("/events/:id{[0-9]+}", async (c) => {
-		const facultyId = parseInt(c.req.param("identifier")!);
+		const facultyId = parseInt(c.req.param("id")!);
 
 		try {
 			const events = await db.query.appointmentEvents.findMany({

@@ -1,85 +1,101 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import {
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  format,
-  isSameMonth,
-  isSameDay,
-} from "date-fns"
-import { cn } from "@/lib/utils"
+	format,
+	startOfMonth,
+	endOfMonth,
+	startOfWeek,
+	endOfWeek,
+	addDays,
+	isSameMonth,
+	isSameDay,
+	isToday,
+} from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface CalendarViewProps {
-  currentMonth: Date
-  selectedDate: Date
-  onSelectDate: (date: Date) => void
+	currentMonth: Date;
+	selectedDate: Date | null;
+	onSelectDate: (date: Date) => void;
 }
 
-export default function CalendarView({ currentMonth, selectedDate, onSelectDate }: CalendarViewProps) {
-  const [calendarDays, setCalendarDays] = useState<Date[]>([])
-  const [availableDates, setAvailableDates] = useState<number[]>([])
+export default function CalendarView({
+	currentMonth,
+	selectedDate,
+	onSelectDate,
+}: CalendarViewProps) {
+	const renderHeader = () => {
+		const dateFormat = "EEEEEE";
+		const days = [];
+		const startDate = startOfWeek(startOfMonth(currentMonth));
 
-  // Generate calendar days for the current month view
-  useEffect(() => {
-    const monthStart = startOfMonth(currentMonth)
-    const monthEnd = endOfMonth(monthStart)
-    const calendarStart = startOfWeek(monthStart)
-    const calendarEnd = endOfWeek(monthEnd)
+		for (let i = 0; i < 7; i++) {
+			days.push(
+				<div
+					key={i}
+					className="text-center text-xs font-medium text-gray-500 uppercase"
+				>
+					{format(addDays(startDate, i), dateFormat)}
+				</div>,
+			);
+		}
 
-    const days = eachDayOfInterval({
-      start: calendarStart,
-      end: calendarEnd,
-    })
+		return <div className="grid grid-cols-7 mb-2">{days}</div>;
+	};
 
-    setCalendarDays(days)
+	const renderDays = () => {
+		const monthStart = startOfMonth(currentMonth);
+		const monthEnd = endOfMonth(monthStart);
+		const startDate = startOfWeek(monthStart);
+		const endDate = endOfWeek(monthEnd);
 
-    // Simulate available dates (in a real app, this would come from an API)
-    const available = [9, 10, 16, 17, 23, 24, 25, 30, 31]
-    setAvailableDates(available)
-  }, [currentMonth])
+		const rows = [];
+		let days = [];
+		let day = startDate;
+		let formattedDate = "";
 
-  const weekdays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+		while (day <= endDate) {
+			for (let i = 0; i < 7; i++) {
+				formattedDate = format(day, "d");
+				const cloneDay = day;
+				const isCurrentMonth = isSameMonth(day, monthStart);
 
-  return (
-    <div>
-      <div className="mb-2 grid grid-cols-7 text-center">
-        {weekdays.map((day) => (
-          <div key={day} className="text-sm font-medium text-black">
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center">
-        {calendarDays.map((day, i) => {
-          const dayNum = Number.parseInt(format(day, "d"))
-          const isCurrentMonth = isSameMonth(day, currentMonth)
-          const isSelected = isSameDay(day, selectedDate)
-          const isAvailable = availableDates.includes(dayNum) && isCurrentMonth
+				days.push(
+					<div
+						key={day.toString()}
+						className={`relative p-1 text-center ${!isCurrentMonth ? "text-gray-300" : ""}`}
+					>
+						<Button
+							variant="ghost"
+							size="sm"
+							className={`h-8 w-8 p-0 rounded-full ${isToday(day) ? "bg-gray-100" : ""} ${
+								selectedDate && isSameDay(day, selectedDate)
+									? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+									: ""
+							} ${!isCurrentMonth ? "opacity-0 pointer-events-none" : ""}`}
+							onClick={() => onSelectDate(cloneDay)}
+							disabled={!isCurrentMonth}
+						>
+							{formattedDate}
+						</Button>
+					</div>,
+				);
+				day = addDays(day, 1);
+			}
 
-          return (
-            <button
-              key={i}
-              onClick={() => isAvailable && onSelectDate(day)}
-              disabled={!isAvailable}
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full text-sm transition-colors",
-                isCurrentMonth ? "text-black" : "text-gray-400",
-                isAvailable && !isSelected && "text-primary hover:bg-secondary",
-                isSelected && "bg-primary text-black hover:bg-primary/90",
-                !isAvailable && isCurrentMonth && "text-gray-400",
-                !isCurrentMonth && "opacity-50",
-              )}
-            >
-              {format(day, "d")}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
+			rows.push(
+				<div key={day.toString()} className="grid grid-cols-7 gap-1">
+					{days}
+				</div>,
+			);
+			days = [];
+		}
+
+		return <div className="space-y-1">{rows}</div>;
+	};
+
+	return (
+		<div className="calendar">
+			{renderHeader()}
+			{renderDays()}
+		</div>
+	);
 }
-
