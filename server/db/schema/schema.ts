@@ -66,6 +66,10 @@ export const appointmentRelations = relations(appointments, ({ one }) => ({
 		fields: [appointments.facultyId],
 		references: [faculty.id],
 	}),
+    appointmentEvent: one(appointmentEvents, {
+        fields: [appointments.eventId],
+        references: [appointmentEvents.id]
+    })
 }));
 
 // Appointment Events Table
@@ -127,6 +131,7 @@ export const schedules = t.pgTable("schedule", {
 	createdAt: t.timestamp("created_at").notNull().defaultNow(),
 	updatedAt: t
 		.timestamp("created_at")
+        .defaultNow()
 		.notNull()
 		.$onUpdate(() => sql`now()`),
 });

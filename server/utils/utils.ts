@@ -1,131 +1,153 @@
 import {
-  AppointmentEvent,
-  DailySchedule,
-  ScheduleOverride,
+	AppointmentEvent,
+	DailySchedule,
+	ScheduleOverride,
 } from "../sharedTypes";
 
 interface TimeSlot {
-  start: string;
-  end: string;
+	start: string;
+	end: string;
 }
 
 type Availability = {
-  [dateKey: string]: TimeSlot[];
+	[dateKey: string]: TimeSlot[];
 };
 
 export function getMonthAvailability(
-  date: Date,
-  event: AppointmentEvent,
-  dailySchedulesList: DailySchedule[],
-  overridesList: ScheduleOverride[],
-  currentDate: Date = new Date(),
-): Availability {
-  // Get first and last day of the specified month
-  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+	date: Date,
+	event: AppointmentEvent,
+	dailySchedulesList: DailySchedule[],
+	overridesList: ScheduleOverride[],
+	currentDate: Date = new Date(),
+): { availability: Availability; month: Date } {
+	console.log("Date", date);
+	// Get first and last day of the specified month
+	const firstDayOfMonth = new Date(
+		date.getFullYear(),
+		date.getMonth() - 1,
+		1,
+	);
+	const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 0);
 
-  // Check if event has start and end dates defined
-  const eventStartDate = event.startDate
-    ? new Date(event.startDate)
-    : new Date(0); // Earliest possible date if not defined
-  const eventEndDate = event.endDate
-    ? new Date(event.endDate)
-    : new Date(8640000000000000); // Latest possible date if not defined
+	// Check if event has start and end dates defined
+	console.log(event.startDate);
+	const eventStartDate = event.startDate
+		? new Date(event.startDate)
+		: new Date(0); // Earliest possible date if not defined
+	const eventEndDate = event.endDate
+		? new Date(event.endDate)
+		: new Date(8640000000000000); // Latest possible date if not defined
+	console.log("eventEndDate: ", eventEndDate);
 
-  // Determine effective start date (latest of event start, current date, first day of month)
-  const effectiveStartDate = new Date(
-    Math.max(
-      eventStartDate.getTime(),
-      currentDate.getTime(),
-      firstDayOfMonth.getTime(),
-    ),
-  );
+	const firstDayOfLastMonth = new Date(
+		eventEndDate.getFullYear(),
+		eventEndDate.getMonth(),
+		1,
+	);
 
-  // Determine effective end date (earliest of event end, last day of month)
-  const effectiveEndDate = new Date(
-    Math.min(eventEndDate.getTime(), lastDayOfMonth.getTime()),
-  );
+	// Determine effective start date (latest of event start, current date, first day of month)
+	console.log("Event Start: " + eventStartDate);
+	console.log("first Day Of Month: " + firstDayOfMonth);
+	console.log("last Day Of Month: " + lastDayOfMonth);
+	console.log("Current Date: " + currentDate);
+	console.log("firstDayOfLastMonth: " + firstDayOfLastMonth);
 
-  // Initialize result object
-  const availability: Availability = {};
+	const effectiveStartDate = new Date(
+		Math.max(
+			eventStartDate.getTime(),
+			currentDate.getTime(),
+			Math.min(firstDayOfMonth.getTime(), firstDayOfLastMonth.getTime()),
+		),
+	);
+	console.log("effectiveStartDate: ", effectiveStartDate);
 
-  // Function to format time in HH:MM format
-  const formatTime = (date: Date): string => {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
+	// Determine effective end date (earliest of event end, last day of month)
+	const effectiveEndDate = new Date(
+		Math.min(eventEndDate.getTime(), lastDayOfMonth.getTime()),
+	);
+	console.log("effective End Date: ", effectiveEndDate);
 
-  // Group daily schedules by day of week (0-6, where 0 is Sunday)
-  const schedulesByDay: Record<number, TimeSlot[]> = {};
-  dailySchedulesList.forEach((schedule) => {
-    const dayOfWeek = schedule.dayOfWeek;
+	// Initialize result object
+	const availability: Availability = {};
 
-    if (!schedulesByDay[dayOfWeek]) {
-      schedulesByDay[dayOfWeek] = [];
-    }
+	// Function to format time in HH:MM format
+	const formatTime = (date: Date): string => {
+		const hours = date.getHours().toString().padStart(2, "0");
+		const minutes = date.getMinutes().toString().padStart(2, "0");
+		return `${hours}:${minutes}`;
+	};
 
-    const startDate = new Date(schedule.startTime);
-    const endDate = new Date(schedule.endTime);
+	// Group daily schedules by day of week (0-6, where 0 is Sunday)
+	const schedulesByDay: Record<number, TimeSlot[]> = {};
+	dailySchedulesList.forEach((schedule) => {
+		const dayOfWeek = schedule.dayOfWeek;
 
-    schedulesByDay[dayOfWeek].push({
-      start: formatTime(startDate),
-      end: formatTime(endDate),
-    });
-  });
+		if (!schedulesByDay[dayOfWeek]) {
+			schedulesByDay[dayOfWeek] = [];
+		}
 
-  // Create a map of override dates
-  const overrideMap: Record<string, TimeSlot[] | null> = {};
-  overridesList.forEach((override) => {
-    const dateObj = new Date(override.date);
-    const dateKey = dateObj.toISOString().split("T")[0];
+		const startDate = new Date(schedule.startTime);
+		const endDate = new Date(schedule.endTime);
 
-    // If the date is blocked, set an empty array
-    if (override.blocked) {
-      overrideMap[dateKey] = [];
-      return;
-    }
+		schedulesByDay[dayOfWeek].push({
+			start: formatTime(startDate),
+			end: formatTime(endDate),
+		});
+	});
 
-    // If startTime or endTime is missing, skip this override
-    if (!override.startTime || !override.endTime) {
-      return;
-    }
+	// Create a map of override dates
+	const overrideMap: Record<string, TimeSlot[] | null> = {};
+	overridesList.forEach((override) => {
+		const dateObj = new Date(override.date);
+		const dateKey = dateObj.toISOString().split("T")[0];
 
-    if (!overrideMap[dateKey]) {
-      overrideMap[dateKey] = [];
-    }
+		// If the date is blocked, set an empty array
+		if (override.blocked) {
+			overrideMap[dateKey] = [];
+			return;
+		}
 
-    const startDate = new Date(override.startTime);
-    const endDate = new Date(override.endTime);
+		// If startTime or endTime is missing, skip this override
+		if (!override.startTime || !override.endTime) {
+			return;
+		}
 
-    (overrideMap[dateKey] as TimeSlot[]).push({
-      start: formatTime(startDate),
-      end: formatTime(endDate),
-    });
-  });
+		if (!overrideMap[dateKey]) {
+			overrideMap[dateKey] = [];
+		}
 
-  // Iterate through each day in the effective date range
-  let currentDay = new Date(effectiveStartDate);
-  while (currentDay <= effectiveEndDate) {
-    const dateKey = currentDay.toISOString().split("T")[0];
-    const dayOfWeek = currentDay.getDay();
+		const startDate = new Date(override.startTime);
+		const endDate = new Date(override.endTime);
 
-    // Check if this date has an override
-    if (dateKey in overrideMap) {
-      availability[dateKey] = overrideMap[dateKey] || [];
-    }
-    // Otherwise use the default schedule for this day of week
-    else if (schedulesByDay[dayOfWeek]) {
-      availability[dateKey] = [...schedulesByDay[dayOfWeek]];
-    }
-    // If no schedule exists for this day, mark it as empty
-    else {
-      availability[dateKey] = [];
-    }
+		(overrideMap[dateKey] as TimeSlot[]).push({
+			start: formatTime(startDate),
+			end: formatTime(endDate),
+		});
+	});
 
-    // Move to the next day
-    currentDay.setDate(currentDay.getDate() + 1);
-  }
+	// Iterate through each day in the effective date range
+	let currentDay = new Date(effectiveStartDate);
+	while (currentDay <= effectiveEndDate) {
+		const dateKey = currentDay.toISOString().split("T")[0];
+		const dayOfWeek = currentDay.getDay();
 
-  return availability;
+		// Check if this date has an override
+		if (dateKey in overrideMap) {
+			availability[dateKey] = overrideMap[dateKey] || [];
+		}
+		// Otherwise use the default schedule for this day of week
+		else if (schedulesByDay[dayOfWeek]) {
+			availability[dateKey] = [...schedulesByDay[dayOfWeek]];
+		}
+		// If no schedule exists for this day, mark it as empty
+		else {
+			availability[dateKey] = [];
+		}
+
+		// Move to the next day
+		currentDay.setDate(currentDay.getDate() + 1);
+	}
+
+	const month = effectiveStartDate;
+	return { availability, month };
 }

@@ -24,74 +24,141 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { api, queryClient } from "@/lib/api";
 import { userQueryOptions } from "@/lib/api";
 import { notFound, redirect } from "@tanstack/react-router";
+import { z } from "zod";
+import NotFound from "@/components/NotFound";
 
 import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/")({
     // loader, 
-    // validateSearch
-    validateSearch: (search) => ({
-        month: search.category as string | undefined,
-        date: search.date as string | undefined,
+    validateSearch: z.object({
+        month: z.string().optional(),
+        date: z.string().optional(),
     }),
-    loader: async ({ context, search }) => {
-        const month = search.month
-    }
+    loaderDeps: ({ search: { month, date } }) => ({
+        month,
+        date,
+    }),
+    loader: async ({ params, deps }) => {
+
+        const { facultyIdentifier, eventIdentifier } = params;
+        const search = deps
+
+
+        // TODO: add a different api call that checks for the correct month, should be the 
+
+        const dateIsValid = !search.date || (
+            /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(search.date) &&
+            (() => {
+                const date = new Date(search.date);
+                return !isNaN(date.getTime()) && search.date === date.toISOString().split("T")[0];
+            })()
+        );
+
+        // If date is invalid, redirect to clean URL
+        if (search.date && !dateIsValid) {
+            const { date, ...cleanSearch } = search;
+
+            // Throw a redirect that will clean the URL
+            throw redirect({
+                to: `/$facultyIdentifier/$eventIdentifier`,
+                params: {
+                    facultyIdentifier,
+                    eventIdentifier
+                },
+                search: cleanSearch,
+                replace: true
+            });
+        }
+
+        const date = search.date ?? null
+
+        try {
+            const user = await queryClient.fetchQuery(userQueryOptions);
+            if (!user || !user.user) {
+                throw redirect({ to: "/" });
+            }
+
+            const facultyRes = await api.faculty.identifier[":identifier"].$get({
+                param: {
+                    identifier: facultyIdentifier,
+                },
+            });
+
+            if (!facultyRes.ok) {
+                throw notFound();
+            }
+
+            const facultyMember = await facultyRes.json();
+
+            const eventRes = await api.events.identifier[":identifier"][":facultyId{[0-9]+}"].$get({
+                param: {
+                    identifier: eventIdentifier,
+                    facultyId: facultyMember.id.toString(),
+                }
+            });
+
+            if (!eventRes.ok) {
+                throw notFound();
+            }
+
+            const event = await eventRes.json();
+
+            const scheduleRes = await api.schedule.month[":eventId{[0-9]+}"].$get({
+                param: {
+                    eventId: event.id.toString()
+                },
+                query: {
+                    month: search.month
+                }
+            });
+
+            if (!scheduleRes.ok) {
+                throw Error("Internal server error")
+            }
+
+            const { availability, month } = await scheduleRes.json();
+            const monthStr = (() => {
+                const d = new Date(month);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            })()
+
+            const monthIsValid = !search.month || /^\d{4}-(0[1-9]|1[0-2])$/.test(search.month);
+
+            console.log(search.month);
+
+            if ((search.month && !monthIsValid) || (search.month !== monthStr)) {
+                const cleanSearch = { ...search, month: monthStr }
+
+                console.log(cleanSearch)
+                // Throw a redirect that will clean the URL
+                throw redirect({
+                    to: `/$facultyIdentifier/$eventIdentifier`,
+                    params: {
+                        facultyIdentifier,
+                        eventIdentifier
+                    },
+                    search: cleanSearch,
+                    replace: true
+                });
+            }
+
+            return { user, facultyMember, event, availability, month, date }
+        } catch (error) {
+            console.log("catch error")
+            throw notFound();
+        }
+    },
     component: BookingCalendar,
+    notFoundComponent: () => <NotFound />
 });
 
-async function bookingCalendarLoader({
-    params,
-}: {
-    params: {
-        facultyIdentifier: string;
-        eventIdentifier: string;
-    };
-}) {
-    const { facultyIdentifier, eventIdentifier } = params;
-    try {
-        const userData = await queryClient.fetchQuery(userQueryOptions);
-        if (!userData || !userData.user) {
-            throw redirect({ to: "/" });
-        }
-
-        const facultyRes = await api.faculty.identifier[":identifier"].$get({
-            param: {
-                identifier: facultyIdentifier,
-            },
-        });
-
-        if (!facultyRes.ok) {
-            throw notFound();
-        }
-
-        const facultyMember = await facultyRes.json();
-
-        const eventRes = await api.events.identifier[":identifier"][":facultyId{[0-9]+}"].$get({
-            param: {
-                identifier: eventIdentifier,
-                facultyId: facultyMember.id.toString(),
-            }
-        });
-
-        if (!eventRes.ok) {
-            throw notFound();
-        } 
-
-        const event = await eventRes.json();
-
-        //TODO: check for a month query, and date query, and if correct if necessary
-        
-	} catch (error) {
-        throw notFound();
-    }
-}
-
 function BookingCalendar() {
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+    const { user, facultyMember, event, availability, month, date } = Route.useLoaderData()
+
+    const [selectedDate, setSelectedDate] = useState<Date | null>(date ? new Date(date) : null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [currentMonth, setCurrentMonth] = useState<Date>(
-        new Date(2024, 6, 1),
-    ); // July 2024
+    const [currentMonth, setCurrentMonth] = useState<Date>(month ? new Date(month) : new Date()); // July 2024
     const [expanded, setExpanded] = useState(false);
     const [showTimeOverlay, setShowTimeOverlay] = useState(false);
 
@@ -194,16 +261,16 @@ function BookingCalendar() {
                                     <div className="flex items-start gap-4 pt-10 pl-2">
                                         <div className="flex-1 justify-items-center">
                                             <h3 className="text-base font-medium text-gray-700">
-                                                Fatima Sy
+                                                {facultyMember.name}
                                             </h3>
                                             <h2 className="text-xl font-bold text-black mb-2">
-                                                Client Check-in
+                                                {event.name}
                                             </h2>
 
                                             <div className="flex flex-wrap gap-x-4 gap-y-2 text-black text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4" />
-                                                    <span>30 min</span>
+                                                    <span>{event.durationMinutes}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <svg
@@ -340,15 +407,15 @@ function BookingCalendar() {
                                                     </span>
                                                 </div>
                                                 <h3 className="text-base font-medium text-black">
-                                                    Fatima Sy
+                                                    {facultyMember.name}
                                                 </h3>
                                                 <h2 className="text-xl font-bold text-black mb-2">
-                                                    Client Check-in
+                                                    {event.name}
                                                 </h2>
                                                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-black text-sm">
                                                     <div className="flex items-center gap-2">
                                                         <Clock className="h-4 w-4" />
-                                                        <span>30 min</span>
+                                                        <span>{`${event.durationMinutes} Min`}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <svg
@@ -503,10 +570,10 @@ function BookingCalendar() {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <h3 className="text-lg font-medium text-black">
-                                                Fatima Sy
+                                                {facultyMember.name}
                                             </h3>
                                             <h2 className="mb-6 text-2xl font-bold text-black">
-                                                Client Check-in
+                                                {event.name}
                                             </h2>
                                         </div>
                                     </div>
@@ -514,7 +581,7 @@ function BookingCalendar() {
                                     <div className="space-y-4 text-black">
                                         <div className="flex items-center gap-3">
                                             <Clock className="h-5 w-5" />
-                                            <span>30 min</span>
+                                            <span>{`${event.durationMinutes} Min`}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <svg
@@ -620,8 +687,8 @@ function BookingCalendar() {
                                     {/* Time Selection - Desktop (side panel) */}
                                     <div
                                         className={`bg-white transition-all duration-300 ease-in-out overflow-hidden ${expanded
-                                                ? "w-[250px] opacity-100"
-                                                : "w-0 opacity-0"
+                                            ? "w-[250px] opacity-100"
+                                            : "w-0 opacity-0"
                                             }`}
                                     >
                                         {selectedDate && (
