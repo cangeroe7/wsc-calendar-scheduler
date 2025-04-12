@@ -33,7 +33,7 @@ const getUserAppointmentsSchema = z.object({
 export const appointmentRoute = new Hono()
 
 	// Get appointment by appointment id
-	.get("/:id{[0-9]+}", async (c) => {
+	.get("/:id{[0-9]+}", getUser, async (c) => {
 		const appointmentId = parseInt(c.req.param("id"));
 		console.log(appointmentId);
 
@@ -121,8 +121,8 @@ export const appointmentRoute = new Hono()
 	// Create an appointment
 	.post(
 		"/",
-		zValidator("json", createAppointmentSchema),
 		getUser,
+		zValidator("json", createAppointmentSchema),
 		async (c) => {
 			const appointment = c.req.valid("json");
 

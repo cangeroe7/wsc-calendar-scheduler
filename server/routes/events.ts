@@ -3,7 +3,9 @@ import { getUser } from "../kinde";
 import { db } from "../db";
 
 export const eventsRoute = new Hono()
-	.get("/identifier/:identifier/:facultyId{[0-9]+}", getUser, async (c) => {
+    
+    // Get event by its unique identifier
+	.get("/identifier/:identifier/:facultyId{[0-9]+}", async (c) => {
 		const identifier = c.req.param("identifier");
 		const facultyId = parseInt(c.req.param("facultyId"));
 
@@ -28,7 +30,9 @@ export const eventsRoute = new Hono()
 			return c.json("Internal server error", 500);
 		}
 	})
-	.get("/:id{[0-9]+}", getUser, async (c) => {
+
+    // Get event by its eventId
+	.get("/:id{[0-9]+}", async (c) => {
 		const eventId = parseInt(c.req.param("id"));
 
 		try {
@@ -46,7 +50,9 @@ export const eventsRoute = new Hono()
 			return c.json("Internal server error", 500);
 		}
 	})
-	.get("/faculty/:facultyId{[0-9]+}", getUser, async (c) => {
+
+    // Get events by facultyId
+	.get("/faculty/:facultyId{[0-9]+}", async (c) => {
 		const facultyId = parseInt(c.req.param("facultyId"));
 
 		try {
