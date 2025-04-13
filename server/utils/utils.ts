@@ -20,7 +20,6 @@ export function getMonthAvailability(
 	overridesList: ScheduleOverride[],
 	currentDate: Date = new Date(),
 ): { availability: Availability; month: Date } {
-	console.log("Date", date);
 	// Get first and last day of the specified month
 	const firstDayOfMonth = new Date(
 		date.getFullYear(),
@@ -30,14 +29,12 @@ export function getMonthAvailability(
 	const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 0);
 
 	// Check if event has start and end dates defined
-	console.log(event.startDate);
 	const eventStartDate = event.startDate
 		? new Date(event.startDate)
 		: new Date(0); // Earliest possible date if not defined
 	const eventEndDate = event.endDate
 		? new Date(event.endDate)
 		: new Date(8640000000000000); // Latest possible date if not defined
-	console.log("eventEndDate: ", eventEndDate);
 
 	const firstDayOfLastMonth = new Date(
 		eventEndDate.getFullYear(),
@@ -46,12 +43,6 @@ export function getMonthAvailability(
 	);
 
 	// Determine effective start date (latest of event start, current date, first day of month)
-	console.log("Event Start: " + eventStartDate);
-	console.log("first Day Of Month: " + firstDayOfMonth);
-	console.log("last Day Of Month: " + lastDayOfMonth);
-	console.log("Current Date: " + currentDate);
-	console.log("firstDayOfLastMonth: " + firstDayOfLastMonth);
-
 	const effectiveStartDate = new Date(
 		Math.max(
 			eventStartDate.getTime(),
@@ -59,13 +50,11 @@ export function getMonthAvailability(
 			Math.min(firstDayOfMonth.getTime(), firstDayOfLastMonth.getTime()),
 		),
 	);
-	console.log("effectiveStartDate: ", effectiveStartDate);
 
 	// Determine effective end date (earliest of event end, last day of month)
 	const effectiveEndDate = new Date(
 		Math.min(eventEndDate.getTime(), lastDayOfMonth.getTime()),
 	);
-	console.log("effective End Date: ", effectiveEndDate);
 
 	// Initialize result object
 	const availability: Availability = {};

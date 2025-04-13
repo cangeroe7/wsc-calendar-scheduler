@@ -132,9 +132,9 @@ async function getEventByIdentifierAndFacultyId(
 		throw new ServerError("Something went wrong");
 	}
 
-	const facultyMember = await eventResult.data.json();
+	const event = await eventResult.data.json();
 
-	return facultyMember;
+	return event;
 }
 
 export const eventByIdentifierAndFacultyIdQuery = (
@@ -151,6 +151,37 @@ export const eventByIdentifierAndFacultyIdQuery = (
 		staleTime: Infinity,
 	});
 
+async function getScheduleByEventId(eventId: string, month?: string) {
+	const scheduleResult = await tryCatch(
+		api.schedule.month[":eventId{[0-9]+}"].$get({
+			param: { eventId: eventId },
+			query: { month: month },
+		}),
+	);
+
+	if (!scheduleResult.data) {
+		throw new ServerError();
+	}
+
+	if (scheduleResult.data.status === 404) {
+		throw new NotFoundError("Event schedule not found");
+	}
+
+	if (!scheduleResult.data.ok) {
+		throw new ServerError("Something went wrong");
+	}
+
+	const schedule = await scheduleResult.data.json();
+
+	return schedule;
+}
+
+export const scheduleByEventIdQuery = (eventId: string, month?: string) =>
+	queryOptions({
+		queryKey: ["get-schedule-by-event-id", eventId, month],
+		queryFn: () => getScheduleByEventId(eventId, month),
+		staleTime: 2 * 60 * 1000,
+	});
 async function getAllFaculty() {
 	const res = await api.faculty.$get();
 	if (!res.ok) {
