@@ -87,7 +87,7 @@ export const appointmentEvents = t.pgTable(
 			.integer("faculty_id")
 			.notNull()
 			.references(() => faculty.id),
-		name: t.varchar("name"),
+		name: t.varchar("name").notNull(),
 		durationMinutes: t.integer("duration_minutes").notNull().default(30),
 		bookingInterval: t.integer("booking_interval").notNull().default(30),
 		location: t.varchar("location"),

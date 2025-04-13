@@ -132,8 +132,17 @@ async function getEventByIdentifierAndFacultyId(
 		throw new ServerError("Something went wrong");
 	}
 
-	const event = await eventResult.data.json();
+	const rawEvent = await eventResult.data.json();
 
+	const event = {
+		...rawEvent,
+		startDate: rawEvent.startDate
+			? new Date(rawEvent.startDate)
+			: new Date(-8640000000000000), // Earliest possible JS date
+		endDate: rawEvent.endDate
+			? new Date(rawEvent.endDate)
+			: new Date(8640000000000000), // Latest possible JS date
+	};
 	return event;
 }
 

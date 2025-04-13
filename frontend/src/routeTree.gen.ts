@@ -18,6 +18,7 @@ import { Route as ScheduleIdentifierImport } from './routes/$scheduleIdentifier'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
+import { Route as FacultyIdentifierIndexImport } from './routes/$facultyIdentifier/index'
 import { Route as AdminMeetingsIndexImport } from './routes/admin/meetings/index'
 import { Route as FacultyIdentifierEventIdentifierIndexImport } from './routes/$facultyIdentifier/$eventIdentifier/index'
 import { Route as DashboardScheduleFacultyIdImport } from './routes/dashboard/schedule/$facultyId'
@@ -67,6 +68,12 @@ const DashboardIndexRoute = DashboardIndexImport.update({
 const AdminIndexRoute = AdminIndexImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const FacultyIdentifierIndexRoute = FacultyIdentifierIndexImport.update({
+  id: '/$facultyIdentifier/',
+  path: '/$facultyIdentifier/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -143,6 +150,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
+    '/$facultyIdentifier/': {
+      id: '/$facultyIdentifier/'
+      path: '/$facultyIdentifier'
+      fullPath: '/$facultyIdentifier'
+      preLoaderRoute: typeof FacultyIdentifierIndexImport
       parentRoute: typeof rootRoute
     }
     '/admin/': {
@@ -257,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '': typeof AuthenticatedRoute
+  '/$facultyIdentifier': typeof FacultyIdentifierIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren
@@ -272,6 +287,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '': typeof AuthenticatedRoute
+  '/$facultyIdentifier': typeof FacultyIdentifierIndexRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierIndexRoute
@@ -287,6 +303,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '/_authenticated': typeof AuthenticatedRoute
+  '/$facultyIdentifier/': typeof FacultyIdentifierIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierRouteWithChildren
@@ -305,6 +322,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$scheduleIdentifier'
     | ''
+    | '/$facultyIdentifier'
     | '/admin'
     | '/dashboard'
     | '/$facultyIdentifier/$eventIdentifier'
@@ -319,6 +337,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$scheduleIdentifier'
     | ''
+    | '/$facultyIdentifier'
     | '/admin'
     | '/dashboard'
     | '/$facultyIdentifier/$eventIdentifier'
@@ -332,6 +351,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$scheduleIdentifier'
     | '/_authenticated'
+    | '/$facultyIdentifier/'
     | '/admin/'
     | '/dashboard/'
     | '/$facultyIdentifier/$eventIdentifier'
@@ -349,6 +369,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ScheduleIdentifierRoute: typeof ScheduleIdentifierRoute
   AuthenticatedRoute: typeof AuthenticatedRoute
+  FacultyIdentifierIndexRoute: typeof FacultyIdentifierIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   FacultyIdentifierEventIdentifierRoute: typeof FacultyIdentifierEventIdentifierRouteWithChildren
@@ -362,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ScheduleIdentifierRoute: ScheduleIdentifierRoute,
   AuthenticatedRoute: AuthenticatedRoute,
+  FacultyIdentifierIndexRoute: FacultyIdentifierIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   FacultyIdentifierEventIdentifierRoute:
@@ -386,6 +408,7 @@ export const routeTree = rootRoute
         "/",
         "/$scheduleIdentifier",
         "/_authenticated",
+        "/$facultyIdentifier/",
         "/admin/",
         "/dashboard/",
         "/$facultyIdentifier/$eventIdentifier",
@@ -403,6 +426,9 @@ export const routeTree = rootRoute
     },
     "/_authenticated": {
       "filePath": "_authenticated.tsx"
+    },
+    "/$facultyIdentifier/": {
+      "filePath": "$facultyIdentifier/index.tsx"
     },
     "/admin/": {
       "filePath": "admin/index.tsx"
