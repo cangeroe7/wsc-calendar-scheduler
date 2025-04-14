@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { getUser } from "../kinde";
 import { db } from "../db";
 
 export const eventsRoute = new Hono()

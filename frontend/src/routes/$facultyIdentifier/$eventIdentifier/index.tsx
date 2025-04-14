@@ -10,7 +10,6 @@ import {
     ArrowLeft,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -23,24 +22,27 @@ import CalendarView from "@/components/calendar-view";
 import TimeSlots from "@/components/time-slots";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
-    api,
     eventByIdentifierAndFacultyIdQuery,
     facultyMemberByIdentiferQueryOptions,
+    scheduleByEventIdQuery,
 } from "@/lib/api";
 import { userQueryOptions } from "@/lib/api";
-import { notFound, redirect } from "@tanstack/react-router";
+import { Link, notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import NotFound from "@/components/NotFound";
 import { tryCatch } from "@server/utils/utils";
 
 import { createFileRoute } from "@tanstack/react-router";
 import TruncatedText from "@/components/TruncatedText";
+import { NotFoundError } from "@/lib/errors";
 export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/")({
     validateSearch: z.object({
+        back: z.any().optional(),
         month: z.string().optional(),
         date: z.string().optional(),
     }),
-    loaderDeps: ({ search: { month, date } }) => ({
+    loaderDeps: ({ search: { back, month, date } }) => ({
+        back,
         month,
         date,
     }),
@@ -76,84 +78,86 @@ export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/")({
 
         const date = search.date ?? null;
 
-        // Fetch user data
-        const userResult = await tryCatch(
-            queryClient.fetchQuery(userQueryOptions),
-        );
-        if (!userResult.data || !userResult.data.user) {
-            throw redirect({ to: "/" });
+        try {
+            // Fetch user data
+            const userResult = await tryCatch(
+                queryClient.fetchQuery(userQueryOptions),
+            );
+            if (!userResult.data || !userResult.data.user) {
+                throw redirect({ to: "/" });
+            }
+
+            const facultyMember = await queryClient.fetchQuery(
+                facultyMemberByIdentiferQueryOptions(facultyIdentifier),
+            );
+            if (!facultyMember) {
+                throw notFound();
+            }
+
+            const event = await queryClient.fetchQuery(
+                eventByIdentifierAndFacultyIdQuery(
+                    eventIdentifier,
+                    facultyMember.id,
+                ),
+            );
+
+            if (!event) {
+                throw notFound();
+            }
+
+            const schedule = await queryClient.fetchQuery(
+                scheduleByEventIdQuery(event.id.toString(), search.month),
+            );
+
+            if (!schedule) {
+                throw notFound();
+            }
+
+            const { availability, month } = schedule;
+
+            // Format and validate month
+            const monthStr = (() => {
+                const d = new Date(month);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            })();
+
+            const monthIsValid =
+                !search.month || /^\d{4}-(0[1-9]|1[0-2])$/.test(search.month);
+
+            if ((search.month && !monthIsValid) || search.month !== monthStr) {
+                const cleanSearch = { ...search, month: monthStr };
+                throw redirect({
+                    to: `/$facultyIdentifier/$eventIdentifier`,
+                    params: params,
+                    search: cleanSearch,
+                    replace: true,
+                });
+            }
+
+            return {
+                user: userResult.data,
+                facultyIdentifier,
+                facultyMember,
+                event,
+                availability,
+                month,
+                date,
+                back: search.back ? true : false,
+            };
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                throw notFound();
+            }
+
+            throw error;
         }
-
-        const facultyMember = await queryClient.fetchQuery(
-            facultyMemberByIdentiferQueryOptions(facultyIdentifier),
-        );
-        if (!facultyMember) {
-            throw notFound();
-        }
-
-        const event = await queryClient.fetchQuery(
-            eventByIdentifierAndFacultyIdQuery(
-                eventIdentifier,
-                facultyMember.id,
-            ),
-        );
-        if (!facultyMember) {
-            throw notFound();
-        }
-
-        // Fetch schedule data
-        const scheduleResult = await tryCatch(
-            api.schedule.month[":eventId{[0-9]+}"].$get({
-                param: { eventId: event.id.toString() },
-                query: { month: search.month },
-            }),
-        );
-
-        if (!scheduleResult.data || !scheduleResult.data.ok) {
-            throw Error("Internal server error");
-        }
-
-        const scheduleJsonResult = await tryCatch(scheduleResult.data.json());
-        if (!scheduleJsonResult.data) {
-            throw Error("Internal server error");
-        }
-
-        const { availability, month } = scheduleJsonResult.data;
-
-        // Format and validate month
-        const monthStr = (() => {
-            const d = new Date(month);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-        })();
-
-        const monthIsValid =
-            !search.month || /^\d{4}-(0[1-9]|1[0-2])$/.test(search.month);
-
-        if ((search.month && !monthIsValid) || search.month !== monthStr) {
-            const cleanSearch = { ...search, month: monthStr };
-            throw redirect({
-                to: `/$facultyIdentifier/$eventIdentifier`,
-                params: params,
-                search: cleanSearch,
-                replace: true,
-            });
-        }
-
-        return {
-            user: userResult.data,
-            facultyMember,
-            event,
-            availability,
-            month,
-            date,
-        };
     },
     component: BookingCalendar,
     notFoundComponent: () => <NotFound />,
 });
 
 function BookingCalendar() {
-    const { facultyMember, event, availability, month, date } =
+    const { back, facultyIdentifier, facultyMember, event, availability, month, date } =
         Route.useLoaderData();
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -165,6 +169,8 @@ function BookingCalendar() {
     ); // July 2024
     const [expanded, setExpanded] = useState(false);
     const [showTimeOverlay, setShowTimeOverlay] = useState(false);
+
+    const effectiveStart = new Date(Math.max(event.startDate.getTime(), new Date(Date.now()).getTime()))
 
     // Check if screen is mobile (≤ 650px)
     const isMobile = useMediaQuery("(max-width: 650px)");
@@ -213,13 +219,15 @@ function BookingCalendar() {
 
     // Shared back button component with consistent styling
     const BackButton = () => (
-        <Button
-            variant="ghost"
-            size="default"
-            className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1"
-        >
-            <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <Link to="/$facultyIdentifier" params={{ facultyIdentifier }}>
+            <Button
+                variant="ghost"
+                size="default"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1"
+            >
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+        </Link>
     );
 
     return (
@@ -251,6 +259,9 @@ function BookingCalendar() {
                                 <TimeSlots
                                     selectedTime={selectedTime}
                                     onSelectTime={setSelectedTime}
+                                    selectedDate={selectedDate}
+                                    availability={availability}
+                                    minuteIncrement={event.bookingInterval}
                                 />
                             </div>
                         ) : (
@@ -258,10 +269,13 @@ function BookingCalendar() {
                                 {/* Compact Header for Details with back button at top left */}
                                 <div className="w-full p-3 bg-secondary relative justify-items-center">
                                     {/* Back button at top left */}
-                                    <div className="absolute top-3 left-3 z-10">
-                                        <BackButton />
-                                    </div>
-
+                                    {back ? (
+                                        <div className="absolute top-3 left-3 z-10">
+                                            <BackButton />
+                                        </div>
+                                    ) : (
+                                        ""
+                                    )}
                                     {/* Details content with padding to avoid overlap with back button */}
                                     <div className="flex-1 justify-items-center">
                                         <h3 className="text-base font-medium text-gray-700">
@@ -284,13 +298,16 @@ function BookingCalendar() {
                                             </div>
                                         </div>
                                         <div className="my-2 mx-6">
-                                        <TruncatedText text={event.description ?? ""} limit={100} />
+                                            <TruncatedText
+                                                text={event.description ?? ""}
+                                                limit={100}
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Calendar Section */}
-                                <div className="p-4 bg-white flex-1">
+                                <div className="select-none p-4 bg-white flex-1">
                                     <h2 className="mb-4 text-center text-xl font-semibold text-black">
                                         Select a Date & Time
                                     </h2>
@@ -301,6 +318,7 @@ function BookingCalendar() {
                                             size="icon"
                                             onClick={handlePreviousMonth}
                                             className="text-black hover:bg-gray-100"
+                                            disabled={effectiveStart.getTime() >= currentMonth.getTime()}
                                         >
                                             <ChevronLeft className="h-5 w-5" />
                                         </Button>
@@ -312,16 +330,20 @@ function BookingCalendar() {
                                             size="icon"
                                             onClick={handleNextMonth}
                                             className="text-black hover:bg-gray-100"
+                                            disabled={new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1) > event.endDate}
                                         >
                                             <ChevronRight className="h-5 w-5" />
                                         </Button>
                                     </div>
 
-                                    <div className="h-[280px]">
+                                    <div className="h-[320px]">
                                         <CalendarView
                                             currentMonth={currentMonth}
                                             selectedDate={selectedDate!}
                                             onSelectDate={handleDateSelect}
+                                            startDate={effectiveStart}
+                                            endDate={event.endDate}
+                                            availability={availability}
                                         />
                                     </div>
 
@@ -368,9 +390,12 @@ function BookingCalendar() {
                                 {/* Tablet Header with back button at top left */}
                                 <div className="w-full p-5 bg-secondary relative">
                                     {/* Back button at top left */}
-                                    <div className="absolute top-5 left-5 z-10">
-                                        <BackButton />
-                                    </div>
+                                    {back ? (
+                                        <div className="absolute top-5 left-5 z-10">
+                                            <BackButton />
+                                        </div>
+
+                                    ) : ""}
 
                                     {/* Centered details with padding to avoid overlap with back button */}
                                     <div className="flex justify-center ">
@@ -406,7 +431,9 @@ function BookingCalendar() {
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <MapPin className="h-5 w-5" />
-                                                        <span>{event.location}</span>
+                                                        <span>
+                                                            {event.location}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -416,7 +443,7 @@ function BookingCalendar() {
 
                                 {/* Calendar Section */}
                                 <div
-                                    className={`bg-white p-6 ${expanded ? "flex" : "block px-32"}`}
+                                    className={`select-none bg-white p-6 ${expanded ? "flex" : "block px-32"}`}
                                 >
                                     <div
                                         className={`p-6 ${expanded ? "w-1/2 pr-2" : "w-full"}`}
@@ -431,6 +458,7 @@ function BookingCalendar() {
                                                 size="icon"
                                                 onClick={handlePreviousMonth}
                                                 className="text-black hover:bg-gray-100"
+                                                disabled={effectiveStart.getTime() >= currentMonth.getTime()}
                                             >
                                                 <ChevronLeft className="h-5 w-5" />
                                             </Button>
@@ -445,16 +473,20 @@ function BookingCalendar() {
                                                 size="icon"
                                                 onClick={handleNextMonth}
                                                 className="text-black hover:bg-gray-100"
+                                                disabled={new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1) > event.endDate}
                                             >
                                                 <ChevronRight className="h-5 w-5" />
                                             </Button>
                                         </div>
 
-                                        <div className="h-[280px] p-4">
+                                        <div className="h-[320px] p-4">
                                             <CalendarView
                                                 currentMonth={currentMonth}
                                                 selectedDate={selectedDate!}
                                                 onSelectDate={handleDateSelect}
+                                                startDate={effectiveStart}
+                                                endDate={event.endDate}
+                                                availability={availability}
                                             />
                                         </div>
 
@@ -502,7 +534,12 @@ function BookingCalendar() {
                                             </h2>
                                             <TimeSlots
                                                 selectedTime={selectedTime}
-                                                onSelectTime={setSelectedTime}
+                                                onSelectTime={
+                                                    setSelectedTime
+                                                }
+                                                selectedDate={selectedDate}
+                                                availability={availability}
+                                                minuteIncrement={event.bookingInterval}
                                             />
                                         </div>
                                     )}
@@ -514,9 +551,12 @@ function BookingCalendar() {
                                 {/* Left Panel - Host Information */}
                                 <div className="w-[325px] border-r border-gray-300 p-6 bg-secondary">
                                     {/* Desktop back button above other content */}
-                                    <div className="mb-4">
-                                        <BackButton />
-                                    </div>
+                                    {back ? (
+
+                                        <div className="mb-4">
+                                            <BackButton />
+                                        </div>
+                                    ) : ""}
                                     <div className="mb-2">
                                         <div className="flex flex-col items-center">
                                             <Avatar className="border-3 border-gray-500 mb-2 h-20 w-20">
@@ -573,6 +613,7 @@ function BookingCalendar() {
                                                 size="icon"
                                                 onClick={handlePreviousMonth}
                                                 className="text-black hover:bg-gray-100"
+                                                disabled={effectiveStart.getTime() > currentMonth.getTime()}
                                             >
                                                 <ChevronLeft className="h-5 w-5" />
                                             </Button>
@@ -587,16 +628,20 @@ function BookingCalendar() {
                                                 size="icon"
                                                 onClick={handleNextMonth}
                                                 className="bg-primary/40 text-black hover:bg-primary/70"
+                                                disabled={new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1) > event.endDate}
                                             >
                                                 <ChevronRight className="h-5 w-5" />
                                             </Button>
                                         </div>
 
-                                        <div className="h-[280px]">
+                                        <div className="h-[320px]">
                                             <CalendarView
                                                 currentMonth={currentMonth}
                                                 selectedDate={selectedDate!}
                                                 onSelectDate={handleDateSelect}
+                                                startDate={effectiveStart}
+                                                endDate={event.endDate}
+                                                availability={availability}
                                             />
                                         </div>
 
@@ -653,6 +698,9 @@ function BookingCalendar() {
                                                     onSelectTime={
                                                         setSelectedTime
                                                     }
+                                                    selectedDate={selectedDate}
+                                                    availability={availability}
+                                                    minuteIncrement={event.bookingInterval}
                                                 />
                                             </div>
                                         )}
