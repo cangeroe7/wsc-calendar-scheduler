@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../db";
 import { getMonthAvailability } from "../utils/utils";
-import { getUser } from "../kinde";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -61,10 +60,10 @@ export const scheduleRoute = new Hono()
                 return c.json("Internal server error", 500);
             }
         })
-    .get("/day/:eventId{[0-9]+}", getUser, async (c) => {
+    .get("/day/:eventId{[0-9]+}", async (c) => {
         return c.json("TEMPORARY");
     })
-    .get("/overrides/scheduleId{[0-9]+}", getUser, async (c) => {
+    .get("/overrides/scheduleId{[0-9]+}", async (c) => {
         return c.json("TEMPORARY");
     })
     .post("/override/:scheduleId{[0-9]+}")

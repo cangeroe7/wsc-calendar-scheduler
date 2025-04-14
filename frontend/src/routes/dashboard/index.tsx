@@ -7,32 +7,31 @@ import { SearchBar } from "@/components/SearchBar";
 import { FacultyGrid } from "@/components/FacultyGrid";
 import { getAllFacultyQueryOptions, userQueryOptions } from "@/lib/api";
 import NotFound from "@/components/NotFound";
-import { queryClient } from "@/lib/api";
 import { departmentEnum } from "@server/db/schema/faculty";
 import { capitalize } from "@/lib/utils";
 
 
 const departments = departmentEnum.enumValues;
-async function dashboardLoader() {
-    try {
-        const userData = await queryClient.fetchQuery(userQueryOptions);
-        if (!userData || !userData.user) {
-            throw redirect({ to: "/" });
-        };
-
-        const facultyData = await queryClient.fetchQuery(getAllFacultyQueryOptions);
-        if (!facultyData || !facultyData.faculty) {
-            throw notFound();
-        }
-
-        return { user: userData.user, facultyMembers: facultyData.faculty }
-    } catch (error) {
-        throw new Response("Internal server error", { status: 500 });
-    }
-}
 
 export const Route = createFileRoute('/dashboard/')({
-    loader: dashboardLoader,
+    loader: async ({ context }) => {
+
+        try {
+            const userData = await context.queryClient.fetchQuery(userQueryOptions);
+            if (!userData || !userData.user) {
+                throw redirect({ to: "/" });
+            };
+
+            const facultyData = await context.queryClient.fetchQuery(getAllFacultyQueryOptions);
+            if (!facultyData || !facultyData.faculty) {
+                throw notFound();
+            }
+
+            return { user: userData.user, facultyMembers: facultyData.faculty }
+        } catch (error) {
+            throw new Response("Internal server error", { status: 500 });
+        }
+    },
     component: Dashboard,
     notFoundComponent: () => <NotFound />
 })

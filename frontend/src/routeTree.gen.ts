@@ -8,9 +8,12 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as ScheduleIdentifierImport } from './routes/$scheduleIdentifier'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
@@ -18,10 +21,23 @@ import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminMeetingsIndexImport } from './routes/admin/meetings/index'
 import { Route as FacultyIdentifierEventIdentifierIndexImport } from './routes/$facultyIdentifier/$eventIdentifier/index'
 import { Route as DashboardScheduleFacultyIdImport } from './routes/dashboard/schedule/$facultyId'
+import { Route as FacultyIdentifierEventIdentifierAuthenticatedImport } from './routes/$facultyIdentifier/$eventIdentifier/_authenticated'
 import { Route as AdminAvailabilityScheduleIndexImport } from './routes/admin/availability/schedule/index'
 import { Route as AdminAvailabilityScheduleScheduleIdImport } from './routes/admin/availability/schedule/$scheduleId'
+import { Route as FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeImport } from './routes/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime'
+
+// Create Virtual Routes
+
+const FacultyIdentifierEventIdentifierImport = createFileRoute(
+  '/$facultyIdentifier/$eventIdentifier',
+)()
 
 // Create/Update Routes
+
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ScheduleIdentifierRoute = ScheduleIdentifierImport.update({
   id: '/$scheduleIdentifier',
@@ -34,6 +50,13 @@ const IndexRoute = IndexImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any)
+
+const FacultyIdentifierEventIdentifierRoute =
+  FacultyIdentifierEventIdentifierImport.update({
+    id: '/$facultyIdentifier/$eventIdentifier',
+    path: '/$facultyIdentifier/$eventIdentifier',
+    getParentRoute: () => rootRoute,
+  } as any)
 
 const DashboardIndexRoute = DashboardIndexImport.update({
   id: '/dashboard/',
@@ -55,9 +78,9 @@ const AdminMeetingsIndexRoute = AdminMeetingsIndexImport.update({
 
 const FacultyIdentifierEventIdentifierIndexRoute =
   FacultyIdentifierEventIdentifierIndexImport.update({
-    id: '/$facultyIdentifier/$eventIdentifier/',
-    path: '/$facultyIdentifier/$eventIdentifier/',
-    getParentRoute: () => rootRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => FacultyIdentifierEventIdentifierRoute,
   } as any)
 
 const DashboardScheduleFacultyIdRoute = DashboardScheduleFacultyIdImport.update(
@@ -67,6 +90,12 @@ const DashboardScheduleFacultyIdRoute = DashboardScheduleFacultyIdImport.update(
     getParentRoute: () => rootRoute,
   } as any,
 )
+
+const FacultyIdentifierEventIdentifierAuthenticatedRoute =
+  FacultyIdentifierEventIdentifierAuthenticatedImport.update({
+    id: '/_authenticated',
+    getParentRoute: () => FacultyIdentifierEventIdentifierRoute,
+  } as any)
 
 const AdminAvailabilityScheduleIndexRoute =
   AdminAvailabilityScheduleIndexImport.update({
@@ -81,6 +110,15 @@ const AdminAvailabilityScheduleScheduleIdRoute =
     path: '/admin/availability/schedule/$scheduleId',
     getParentRoute: () => rootRoute,
   } as any)
+
+const FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute =
+  FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeImport.update(
+    {
+      id: '/$appointmentDatetime',
+      path: '/$appointmentDatetime',
+      getParentRoute: () => FacultyIdentifierEventIdentifierAuthenticatedRoute,
+    } as any,
+  )
 
 // Populate the FileRoutesByPath interface
 
@@ -100,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScheduleIdentifierImport
       parentRoute: typeof rootRoute
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
+      parentRoute: typeof rootRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -114,6 +159,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    '/$facultyIdentifier/$eventIdentifier': {
+      id: '/$facultyIdentifier/$eventIdentifier'
+      path: '/$facultyIdentifier/$eventIdentifier'
+      fullPath: '/$facultyIdentifier/$eventIdentifier'
+      preLoaderRoute: typeof FacultyIdentifierEventIdentifierImport
+      parentRoute: typeof rootRoute
+    }
+    '/$facultyIdentifier/$eventIdentifier/_authenticated': {
+      id: '/$facultyIdentifier/$eventIdentifier/_authenticated'
+      path: '/$facultyIdentifier/$eventIdentifier'
+      fullPath: '/$facultyIdentifier/$eventIdentifier'
+      preLoaderRoute: typeof FacultyIdentifierEventIdentifierAuthenticatedImport
+      parentRoute: typeof FacultyIdentifierEventIdentifierRoute
+    }
     '/dashboard/schedule/$facultyId': {
       id: '/dashboard/schedule/$facultyId'
       path: '/dashboard/schedule/$facultyId'
@@ -123,10 +182,10 @@ declare module '@tanstack/react-router' {
     }
     '/$facultyIdentifier/$eventIdentifier/': {
       id: '/$facultyIdentifier/$eventIdentifier/'
-      path: '/$facultyIdentifier/$eventIdentifier'
-      fullPath: '/$facultyIdentifier/$eventIdentifier'
+      path: '/'
+      fullPath: '/$facultyIdentifier/$eventIdentifier/'
       preLoaderRoute: typeof FacultyIdentifierEventIdentifierIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof FacultyIdentifierEventIdentifierImport
     }
     '/admin/meetings/': {
       id: '/admin/meetings/'
@@ -134,6 +193,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/meetings'
       preLoaderRoute: typeof AdminMeetingsIndexImport
       parentRoute: typeof rootRoute
+    }
+    '/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime': {
+      id: '/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime'
+      path: '/$appointmentDatetime'
+      fullPath: '/$facultyIdentifier/$eventIdentifier/$appointmentDatetime'
+      preLoaderRoute: typeof FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeImport
+      parentRoute: typeof FacultyIdentifierEventIdentifierAuthenticatedImport
     }
     '/admin/availability/schedule/$scheduleId': {
       id: '/admin/availability/schedule/$scheduleId'
@@ -154,14 +220,50 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
+interface FacultyIdentifierEventIdentifierAuthenticatedRouteChildren {
+  FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute: typeof FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute
+}
+
+const FacultyIdentifierEventIdentifierAuthenticatedRouteChildren: FacultyIdentifierEventIdentifierAuthenticatedRouteChildren =
+  {
+    FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute:
+      FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute,
+  }
+
+const FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren =
+  FacultyIdentifierEventIdentifierAuthenticatedRoute._addFileChildren(
+    FacultyIdentifierEventIdentifierAuthenticatedRouteChildren,
+  )
+
+interface FacultyIdentifierEventIdentifierRouteChildren {
+  FacultyIdentifierEventIdentifierAuthenticatedRoute: typeof FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren
+  FacultyIdentifierEventIdentifierIndexRoute: typeof FacultyIdentifierEventIdentifierIndexRoute
+}
+
+const FacultyIdentifierEventIdentifierRouteChildren: FacultyIdentifierEventIdentifierRouteChildren =
+  {
+    FacultyIdentifierEventIdentifierAuthenticatedRoute:
+      FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren,
+    FacultyIdentifierEventIdentifierIndexRoute:
+      FacultyIdentifierEventIdentifierIndexRoute,
+  }
+
+const FacultyIdentifierEventIdentifierRouteWithChildren =
+  FacultyIdentifierEventIdentifierRoute._addFileChildren(
+    FacultyIdentifierEventIdentifierRouteChildren,
+  )
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
+  '': typeof AuthenticatedRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
-  '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierIndexRoute
+  '/$facultyIdentifier/$eventIdentifier/': typeof FacultyIdentifierEventIdentifierIndexRoute
   '/admin/meetings': typeof AdminMeetingsIndexRoute
+  '/$facultyIdentifier/$eventIdentifier/$appointmentDatetime': typeof FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
 }
@@ -169,11 +271,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
+  '': typeof AuthenticatedRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
   '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierIndexRoute
+  '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
   '/admin/meetings': typeof AdminMeetingsIndexRoute
+  '/$facultyIdentifier/$eventIdentifier/$appointmentDatetime': typeof FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule': typeof AdminAvailabilityScheduleIndexRoute
 }
@@ -182,11 +286,15 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
+  '/_authenticated': typeof AuthenticatedRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/$facultyIdentifier/$eventIdentifier': typeof FacultyIdentifierEventIdentifierRouteWithChildren
+  '/$facultyIdentifier/$eventIdentifier/_authenticated': typeof FacultyIdentifierEventIdentifierAuthenticatedRouteWithChildren
   '/dashboard/schedule/$facultyId': typeof DashboardScheduleFacultyIdRoute
   '/$facultyIdentifier/$eventIdentifier/': typeof FacultyIdentifierEventIdentifierIndexRoute
   '/admin/meetings/': typeof AdminMeetingsIndexRoute
+  '/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime': typeof FacultyIdentifierEventIdentifierAuthenticatedAppointmentDatetimeRoute
   '/admin/availability/schedule/$scheduleId': typeof AdminAvailabilityScheduleScheduleIdRoute
   '/admin/availability/schedule/': typeof AdminAvailabilityScheduleIndexRoute
 }
@@ -196,33 +304,42 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$scheduleIdentifier'
+    | ''
     | '/admin'
     | '/dashboard'
-    | '/dashboard/schedule/$facultyId'
     | '/$facultyIdentifier/$eventIdentifier'
+    | '/dashboard/schedule/$facultyId'
+    | '/$facultyIdentifier/$eventIdentifier/'
     | '/admin/meetings'
+    | '/$facultyIdentifier/$eventIdentifier/$appointmentDatetime'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$scheduleIdentifier'
+    | ''
     | '/admin'
     | '/dashboard'
-    | '/dashboard/schedule/$facultyId'
     | '/$facultyIdentifier/$eventIdentifier'
+    | '/dashboard/schedule/$facultyId'
     | '/admin/meetings'
+    | '/$facultyIdentifier/$eventIdentifier/$appointmentDatetime'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule'
   id:
     | '__root__'
     | '/'
     | '/$scheduleIdentifier'
+    | '/_authenticated'
     | '/admin/'
     | '/dashboard/'
+    | '/$facultyIdentifier/$eventIdentifier'
+    | '/$facultyIdentifier/$eventIdentifier/_authenticated'
     | '/dashboard/schedule/$facultyId'
     | '/$facultyIdentifier/$eventIdentifier/'
     | '/admin/meetings/'
+    | '/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime'
     | '/admin/availability/schedule/$scheduleId'
     | '/admin/availability/schedule/'
   fileRoutesById: FileRoutesById
@@ -231,10 +348,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ScheduleIdentifierRoute: typeof ScheduleIdentifierRoute
+  AuthenticatedRoute: typeof AuthenticatedRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  FacultyIdentifierEventIdentifierRoute: typeof FacultyIdentifierEventIdentifierRouteWithChildren
   DashboardScheduleFacultyIdRoute: typeof DashboardScheduleFacultyIdRoute
-  FacultyIdentifierEventIdentifierIndexRoute: typeof FacultyIdentifierEventIdentifierIndexRoute
   AdminMeetingsIndexRoute: typeof AdminMeetingsIndexRoute
   AdminAvailabilityScheduleScheduleIdRoute: typeof AdminAvailabilityScheduleScheduleIdRoute
   AdminAvailabilityScheduleIndexRoute: typeof AdminAvailabilityScheduleIndexRoute
@@ -243,11 +361,12 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ScheduleIdentifierRoute: ScheduleIdentifierRoute,
+  AuthenticatedRoute: AuthenticatedRoute,
   AdminIndexRoute: AdminIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  FacultyIdentifierEventIdentifierRoute:
+    FacultyIdentifierEventIdentifierRouteWithChildren,
   DashboardScheduleFacultyIdRoute: DashboardScheduleFacultyIdRoute,
-  FacultyIdentifierEventIdentifierIndexRoute:
-    FacultyIdentifierEventIdentifierIndexRoute,
   AdminMeetingsIndexRoute: AdminMeetingsIndexRoute,
   AdminAvailabilityScheduleScheduleIdRoute:
     AdminAvailabilityScheduleScheduleIdRoute,
@@ -266,10 +385,11 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/$scheduleIdentifier",
+        "/_authenticated",
         "/admin/",
         "/dashboard/",
+        "/$facultyIdentifier/$eventIdentifier",
         "/dashboard/schedule/$facultyId",
-        "/$facultyIdentifier/$eventIdentifier/",
         "/admin/meetings/",
         "/admin/availability/schedule/$scheduleId",
         "/admin/availability/schedule/"
@@ -281,20 +401,42 @@ export const routeTree = rootRoute
     "/$scheduleIdentifier": {
       "filePath": "$scheduleIdentifier.tsx"
     },
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx"
+    },
     "/admin/": {
       "filePath": "admin/index.tsx"
     },
     "/dashboard/": {
       "filePath": "dashboard/index.tsx"
     },
+    "/$facultyIdentifier/$eventIdentifier": {
+      "filePath": "$facultyIdentifier/$eventIdentifier",
+      "children": [
+        "/$facultyIdentifier/$eventIdentifier/_authenticated",
+        "/$facultyIdentifier/$eventIdentifier/"
+      ]
+    },
+    "/$facultyIdentifier/$eventIdentifier/_authenticated": {
+      "filePath": "$facultyIdentifier/$eventIdentifier/_authenticated.tsx",
+      "parent": "/$facultyIdentifier/$eventIdentifier",
+      "children": [
+        "/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime"
+      ]
+    },
     "/dashboard/schedule/$facultyId": {
       "filePath": "dashboard/schedule/$facultyId.tsx"
     },
     "/$facultyIdentifier/$eventIdentifier/": {
-      "filePath": "$facultyIdentifier/$eventIdentifier/index.tsx"
+      "filePath": "$facultyIdentifier/$eventIdentifier/index.tsx",
+      "parent": "/$facultyIdentifier/$eventIdentifier"
     },
     "/admin/meetings/": {
       "filePath": "admin/meetings/index.tsx"
+    },
+    "/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime": {
+      "filePath": "$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime.tsx",
+      "parent": "/$facultyIdentifier/$eventIdentifier/_authenticated"
     },
     "/admin/availability/schedule/$scheduleId": {
       "filePath": "admin/availability/schedule/$scheduleId.tsx"

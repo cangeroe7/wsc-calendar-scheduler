@@ -1,7 +1,9 @@
+//TODO: YOU LEFT OFF AT LINE 286
 import { useState, useEffect } from "react";
 import { format, addMonths, subMonths } from "date-fns";
 import {
     Clock,
+    MapPin,
     ChevronLeft,
     ChevronRight,
     Globe,
@@ -10,7 +12,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
     Select,
     SelectContent,
@@ -21,15 +22,20 @@ import {
 import CalendarView from "@/components/calendar-view";
 import TimeSlots from "@/components/time-slots";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { api, queryClient } from "@/lib/api";
+import {
+    api,
+    eventByIdentifierAndFacultyIdQuery,
+    facultyMemberByIdentiferQueryOptions,
+} from "@/lib/api";
 import { userQueryOptions } from "@/lib/api";
 import { notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import NotFound from "@/components/NotFound";
+import { tryCatch } from "@server/utils/utils";
 
 import { createFileRoute } from "@tanstack/react-router";
+import TruncatedText from "@/components/TruncatedText";
 export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/")({
-    // loader, 
     validateSearch: z.object({
         month: z.string().optional(),
         date: z.string().optional(),
@@ -38,127 +44,125 @@ export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/")({
         month,
         date,
     }),
-    loader: async ({ params, deps }) => {
-
+    loader: async ({ context, params, deps }) => {
         const { facultyIdentifier, eventIdentifier } = params;
-        const search = deps
+        const search = deps;
+        const queryClient = context.queryClient;
 
-
-        // TODO: add a different api call that checks for the correct month, should be the 
-
-        const dateIsValid = !search.date || (
-            /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(search.date) &&
-            (() => {
-                const date = new Date(search.date);
-                return !isNaN(date.getTime()) && search.date === date.toISOString().split("T")[0];
-            })()
-        );
+        // Validate date format
+        const dateIsValid =
+            !search.date ||
+            (/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(
+                search.date,
+            ) &&
+                (() => {
+                    const date = new Date(search.date);
+                    return (
+                        !isNaN(date.getTime()) &&
+                        search.date === date.toISOString().split("T")[0]
+                    );
+                })());
 
         // If date is invalid, redirect to clean URL
         if (search.date && !dateIsValid) {
             const { date, ...cleanSearch } = search;
-
-            // Throw a redirect that will clean the URL
             throw redirect({
                 to: `/$facultyIdentifier/$eventIdentifier`,
-                params: {
-                    facultyIdentifier,
-                    eventIdentifier
-                },
+                params: params,
                 search: cleanSearch,
-                replace: true
+                replace: true,
             });
         }
 
-        const date = search.date ?? null
+        const date = search.date ?? null;
 
-        try {
-            const user = await queryClient.fetchQuery(userQueryOptions);
-            if (!user || !user.user) {
-                throw redirect({ to: "/" });
-            }
+        // Fetch user data
+        const userResult = await tryCatch(
+            queryClient.fetchQuery(userQueryOptions),
+        );
+        if (!userResult.data || !userResult.data.user) {
+            throw redirect({ to: "/" });
+        }
 
-            const facultyRes = await api.faculty.identifier[":identifier"].$get({
-                param: {
-                    identifier: facultyIdentifier,
-                },
-            });
-
-            if (!facultyRes.ok) {
-                throw notFound();
-            }
-
-            const facultyMember = await facultyRes.json();
-
-            const eventRes = await api.events.identifier[":identifier"][":facultyId{[0-9]+}"].$get({
-                param: {
-                    identifier: eventIdentifier,
-                    facultyId: facultyMember.id.toString(),
-                }
-            });
-
-            if (!eventRes.ok) {
-                throw notFound();
-            }
-
-            const event = await eventRes.json();
-
-            const scheduleRes = await api.schedule.month[":eventId{[0-9]+}"].$get({
-                param: {
-                    eventId: event.id.toString()
-                },
-                query: {
-                    month: search.month
-                }
-            });
-
-            if (!scheduleRes.ok) {
-                throw Error("Internal server error")
-            }
-
-            const { availability, month } = await scheduleRes.json();
-            const monthStr = (() => {
-                const d = new Date(month);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-            })()
-
-            const monthIsValid = !search.month || /^\d{4}-(0[1-9]|1[0-2])$/.test(search.month);
-
-            console.log(search.month);
-
-            if ((search.month && !monthIsValid) || (search.month !== monthStr)) {
-                const cleanSearch = { ...search, month: monthStr }
-
-                console.log(cleanSearch)
-                // Throw a redirect that will clean the URL
-                throw redirect({
-                    to: `/$facultyIdentifier/$eventIdentifier`,
-                    params: {
-                        facultyIdentifier,
-                        eventIdentifier
-                    },
-                    search: cleanSearch,
-                    replace: true
-                });
-            }
-
-            return { user, facultyMember, event, availability, month, date }
-        } catch (error) {
-            console.log("catch error")
+        const facultyMember = await queryClient.fetchQuery(
+            facultyMemberByIdentiferQueryOptions(facultyIdentifier),
+        );
+        if (!facultyMember) {
             throw notFound();
         }
+
+        const event = await queryClient.fetchQuery(
+            eventByIdentifierAndFacultyIdQuery(
+                eventIdentifier,
+                facultyMember.id,
+            ),
+        );
+        if (!facultyMember) {
+            throw notFound();
+        }
+
+        // Fetch schedule data
+        const scheduleResult = await tryCatch(
+            api.schedule.month[":eventId{[0-9]+}"].$get({
+                param: { eventId: event.id.toString() },
+                query: { month: search.month },
+            }),
+        );
+
+        if (!scheduleResult.data || !scheduleResult.data.ok) {
+            throw Error("Internal server error");
+        }
+
+        const scheduleJsonResult = await tryCatch(scheduleResult.data.json());
+        if (!scheduleJsonResult.data) {
+            throw Error("Internal server error");
+        }
+
+        const { availability, month } = scheduleJsonResult.data;
+
+        // Format and validate month
+        const monthStr = (() => {
+            const d = new Date(month);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        })();
+
+        const monthIsValid =
+            !search.month || /^\d{4}-(0[1-9]|1[0-2])$/.test(search.month);
+
+        if ((search.month && !monthIsValid) || search.month !== monthStr) {
+            const cleanSearch = { ...search, month: monthStr };
+            throw redirect({
+                to: `/$facultyIdentifier/$eventIdentifier`,
+                params: params,
+                search: cleanSearch,
+                replace: true,
+            });
+        }
+
+        return {
+            user: userResult.data,
+            facultyMember,
+            event,
+            availability,
+            month,
+            date,
+        };
     },
     component: BookingCalendar,
-    notFoundComponent: () => <NotFound />
+    notFoundComponent: () => <NotFound />,
 });
 
 function BookingCalendar() {
+    const { facultyMember, event, availability, month, date } =
+        Route.useLoaderData();
 
-    const { user, facultyMember, event, availability, month, date } = Route.useLoaderData()
-
-    const [selectedDate, setSelectedDate] = useState<Date | null>(date ? new Date(date) : null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(
+        date ? new Date(date) : null,
+    );
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [currentMonth, setCurrentMonth] = useState<Date>(month ? new Date(month) : new Date()); // July 2024
+    const [currentMonth, setCurrentMonth] = useState<Date>(
+        month ? new Date(month) : new Date(),
+    ); // July 2024
     const [expanded, setExpanded] = useState(false);
     const [showTimeOverlay, setShowTimeOverlay] = useState(false);
 
@@ -204,6 +208,7 @@ function BookingCalendar() {
     // Handle back button in mobile time overlay
     const handleBackFromTimeOverlay = () => {
         setShowTimeOverlay(false);
+        setSelectedDate(null);
     };
 
     // Shared back button component with consistent styling
@@ -219,10 +224,10 @@ function BookingCalendar() {
 
     return (
         <div
-            className={`flex min-h-screen flex-col items-center justify-center ${isMobile ? "bg-white p-0" : "bg-slate-100 p-4"}`}
+            className={`flex min-h-screen flex-col items-center ${isMobile ? "bg-white p-0" : "bg-slate-100 p-4"}`}
         >
             <div
-                className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full"}`}
+                className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full pt-32"}`}
             >
                 {isMobile ? (
                     // Full screen mobile view without Card wrapper
@@ -258,38 +263,28 @@ function BookingCalendar() {
                                     </div>
 
                                     {/* Details content with padding to avoid overlap with back button */}
-                                    <div className="flex items-start gap-4 pt-10 pl-2">
-                                        <div className="flex-1 justify-items-center">
-                                            <h3 className="text-base font-medium text-gray-700">
-                                                {facultyMember.name}
-                                            </h3>
-                                            <h2 className="text-xl font-bold text-black mb-2">
-                                                {event.name}
-                                            </h2>
+                                    <div className="flex-1 justify-items-center">
+                                        <h3 className="text-base font-medium text-gray-700">
+                                            {facultyMember.name}
+                                        </h3>
+                                        <h2 className="text-xl font-bold text-black mb-1">
+                                            {event.name}
+                                        </h2>
 
-                                            <div className="flex flex-wrap gap-x-4 gap-y-2 text-black text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-4 w-4" />
-                                                    <span>{event.durationMinutes}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="16"
-                                                        height="16"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    >
-                                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                                    </svg>
-                                                    <span>Zoom</span>
-                                                </div>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-2 text-black text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="h-4 w-4" />
+                                                <span>
+                                                    {event.durationMinutes} Min
+                                                </span>
                                             </div>
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="h-5, w-5" />
+                                                <span>{event.location}</span>
+                                            </div>
+                                        </div>
+                                        <div className="my-2 mx-6">
+                                        <TruncatedText text={event.description ?? ""} limit={100} />
                                         </div>
                                     </div>
                                 </div>
@@ -363,9 +358,9 @@ function BookingCalendar() {
                     </div>
                 ) : (
                     // Tablet and Desktop views with Card wrapper
-                    <Card
-                        className={`overflow-hidden rounded-lg border bg-white shadow-lg transition-all duration-300 ease-in-out 
-            ${isTablet ? (expanded ? "w-full max-w-[900px]" : "w-full max-w-[650px]") : expanded ? "w-[900px]" : "w-[650px]"}`}
+                    <div
+                        className={`overflow-hidden rounded-lg bg-white  border-gray-300 border-1 shadow-lg transition-all duration-300 ease-in-out 
+            ${isTablet ? (expanded ? "w-full max-w-[800px]" : "w-full max-w-[650px]") : expanded ? "w-[800px]" : "w-[800px]"}`}
                     >
                         {/* For tablet: Stacked layout */}
                         {isTablet ? (
@@ -378,34 +373,26 @@ function BookingCalendar() {
                                     </div>
 
                                     {/* Centered details with padding to avoid overlap with back button */}
-                                    <div className="flex justify-center">
-                                        <div className="flex items-start gap-4 pt-10">
+                                    <div className="flex justify-center ">
+                                        <div className="flex items-center gap-4 pt-10">
                                             {/* Avatar and Name */}
                                             <Avatar className="h-14 w-14">
                                                 <AvatarImage
-                                                    src="/placeholder.svg?height=64&width=64"
-                                                    alt="Fatima Sy"
+                                                    src={
+                                                        facultyMember.photoUrl ||
+                                                        ""
+                                                    }
+                                                    alt={facultyMember.name}
                                                 />
                                                 <AvatarFallback className="bg-primary text-black">
-                                                    FS
+                                                    {facultyMember.name
+                                                        .split(" ")
+                                                        .map((word) => word[0])
+                                                        .join("")}
                                                 </AvatarFallback>
                                             </Avatar>
 
                                             <div>
-                                                <div className="flex items-center gap-2 text-black mb-1">
-                                                    <div className="h-5 w-5 rounded bg-primary text-black">
-                                                        <svg
-                                                            viewBox="0 0 24 24"
-                                                            fill="currentColor"
-                                                            className="h-5 w-5"
-                                                        >
-                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
-                                                        </svg>
-                                                    </div>
-                                                    <span className="text-sm font-medium">
-                                                        ACME Inc.
-                                                    </span>
-                                                </div>
                                                 <h3 className="text-base font-medium text-black">
                                                     {facultyMember.name}
                                                 </h3>
@@ -418,21 +405,8 @@ function BookingCalendar() {
                                                         <span>{`${event.durationMinutes} Min`}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="16"
-                                                            height="16"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                        >
-                                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                                        </svg>
-                                                        <span>Zoom</span>
+                                                        <MapPin className="h-5 w-5" />
+                                                        <span>{event.location}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -442,10 +416,10 @@ function BookingCalendar() {
 
                                 {/* Calendar Section */}
                                 <div
-                                    className={`p-4 bg-white ${expanded ? "flex" : "block"}`}
+                                    className={`bg-white p-6 ${expanded ? "flex" : "block px-32"}`}
                                 >
                                     <div
-                                        className={`${expanded ? "w-1/2 pr-2" : "w-full"}`}
+                                        className={`p-6 ${expanded ? "w-1/2 pr-2" : "w-full"}`}
                                     >
                                         <h2 className="mb-4 text-center text-xl font-semibold text-black">
                                             Select a Date & Time
@@ -476,7 +450,7 @@ function BookingCalendar() {
                                             </Button>
                                         </div>
 
-                                        <div className="h-[280px]">
+                                        <div className="h-[280px] p-4">
                                             <CalendarView
                                                 currentMonth={currentMonth}
                                                 selectedDate={selectedDate!}
@@ -519,7 +493,7 @@ function BookingCalendar() {
 
                                     {/* Tablet Time Selection (side-by-side with calendar when date is selected) */}
                                     {expanded && selectedDate && (
-                                        <div className="w-1/2 pl-2 border-l">
+                                        <div className="w-1/2 pl-2 p-6">
                                             <h2 className="mb-4 text-lg font-medium text-black">
                                                 {format(
                                                     selectedDate,
@@ -538,38 +512,29 @@ function BookingCalendar() {
                             /* Desktop Layout (> 1000px) */
                             <div className="flex">
                                 {/* Left Panel - Host Information */}
-                                <div className="w-[325px] border-r p-6 bg-secondary">
+                                <div className="w-[325px] border-r border-gray-300 p-6 bg-secondary">
                                     {/* Desktop back button above other content */}
                                     <div className="mb-4">
                                         <BackButton />
                                     </div>
-
-                                    <div className="mb-6">
-                                        <div className="mb-4 flex items-center gap-2 text-black">
-                                            <div className="h-8 w-8 rounded bg-primary text-black">
-                                                <svg
-                                                    viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                    className="h-8 w-8"
-                                                >
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
-                                                </svg>
-                                            </div>
-                                            <span className="text-lg font-medium">
-                                                ACME Inc.
-                                            </span>
-                                        </div>
+                                    <div className="mb-2">
                                         <div className="flex flex-col items-center">
-                                            <Avatar className="mb-2 h-16 w-16">
+                                            <Avatar className="border-3 border-gray-500 mb-2 h-20 w-20">
                                                 <AvatarImage
-                                                    src="/placeholder.svg?height=64&width=64"
-                                                    alt="Fatima Sy"
+                                                    src={
+                                                        facultyMember.photoUrl ||
+                                                        ""
+                                                    }
+                                                    alt={facultyMember.name}
                                                 />
                                                 <AvatarFallback className="bg-primary text-black">
-                                                    FS
+                                                    {facultyMember.name
+                                                        .split(" ")
+                                                        .map((word) => word[0])
+                                                        .join("")}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <h3 className="text-lg font-medium text-black">
+                                            <h3 className="text-lg font-medium text-gray-600">
                                                 {facultyMember.name}
                                             </h3>
                                             <h2 className="mb-6 text-2xl font-bold text-black">
@@ -584,29 +549,13 @@ function BookingCalendar() {
                                             <span>{`${event.durationMinutes} Min`}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="20"
-                                                height="20"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                            </svg>
-                                            <span>Zoom</span>
+                                            <MapPin className="h-5 w-5" />
+                                            <span>{event.location}</span>
                                         </div>
                                     </div>
 
                                     <div className="mt-8 space-y-3">
-                                        <div className="h-4 w-full rounded bg-white/50"></div>
-                                        <div className="h-4 w-full rounded bg-white/50"></div>
-                                        <div className="h-4 w-full rounded bg-white/50"></div>
-                                        <div className="h-4 w-3/4 rounded bg-white/50"></div>
+                                        {event.description}
                                     </div>
                                 </div>
 
@@ -637,7 +586,7 @@ function BookingCalendar() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={handleNextMonth}
-                                                className="text-black hover:bg-gray-100"
+                                                className="bg-primary/40 text-black hover:bg-primary/70"
                                             >
                                                 <ChevronRight className="h-5 w-5" />
                                             </Button>
@@ -711,7 +660,7 @@ function BookingCalendar() {
                                 </div>
                             </div>
                         )}
-                    </Card>
+                    </div>
                 )}
             </div>
         </div>

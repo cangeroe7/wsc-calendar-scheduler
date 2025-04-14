@@ -19,7 +19,7 @@ export const getDepartmentSchema = z.object({
 export const facultyRoute = new Hono()
 
 	// Get all faculty
-	.get("/", getUser, async (c) => {
+	.get("/", async (c) => {
 		try {
 			const facultyList = await db.query.faculty.findMany();
 			return c.json({
@@ -48,7 +48,7 @@ export const facultyRoute = new Hono()
 	})
 
 	// Get faculty based on their email identifier. Return: facultyMember
-	.get("/identifier/:identifier", getUser, async (c) => {
+	.get("/identifier/:identifier", async (c) => {
 		const identifier = c.req.param("identifier");
 
 		try {
@@ -70,7 +70,6 @@ export const facultyRoute = new Hono()
 	// Get faculty by department
 	.get(
 		"/department/:department",
-		getUser,
 		zValidator("param", getDepartmentSchema),
 		async (c) => {
 			const { department } = c.req.valid("param");
@@ -92,7 +91,7 @@ export const facultyRoute = new Hono()
 	)
 
 	// Get faculty by name
-	.get("/name/:name", getUser, async (c) => {
+	.get("/name/:name", async (c) => {
 		const name = c.req.param("name");
 
 		try {
@@ -118,7 +117,7 @@ export const facultyRoute = new Hono()
 	})
 
 	// Get faculty by id
-	.get("/id/:id{[0-9]+}", getUser, async (c) => {
+	.get("/id/:id{[0-9]+}", async (c) => {
 		const id = parseInt(c.req.param("id"));
 
 		try {
