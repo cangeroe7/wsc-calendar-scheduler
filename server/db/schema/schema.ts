@@ -52,11 +52,12 @@ export const appointments = t.pgTable("appointments", {
 		.references(() => faculty.id, { onDelete: "cascade" }),
 	startTime: t.timestamp("start_time").notNull(),
 	endTime: t.timestamp("end_time").notNull(),
-	studentId: t.varchar("student_id").unique(),
+	studentId: t.varchar("student_id").notNull(),
 	createdAt: t.timestamp("created_at").defaultNow(),
 	updatedAt: t
 		.timestamp("updated_at")
 		.defaultNow()
+        .notNull()
 		.$onUpdate(() => sql`now()`),
 });
 

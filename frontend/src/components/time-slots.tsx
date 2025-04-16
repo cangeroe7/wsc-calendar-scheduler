@@ -10,7 +10,7 @@ interface TimeSlotsProps {
     selectedTime: string | null
     onSelectTime: (time: string) => void
     selectedDate: Date | null
-    availability?: Record<string, TimeRange[]>
+    availability?: TimeRange[] // Changed from object to array of TimeRange
     minuteIncrement?: number
     appointmentLength?: number
 }
@@ -19,20 +19,18 @@ export default function TimeSlots({
     selectedTime,
     onSelectTime,
     selectedDate,
-    availability = {},
+    availability = [], // Changed default from {} to []
     minuteIncrement = 15,
     appointmentLength = 30,
 }: TimeSlotsProps) {
     if (!selectedDate) return null
 
-    const dateKey = format(selectedDate, "yyyy-MM-dd")
-    const availableRanges = availability[dateKey] || []
-
     // Generate time slots based on availability
     const generateTimeSlots = () => {
         const allTimeSlots: { time: string; displayTime: string; group: string }[] = []
 
-        availableRanges.forEach((range) => {
+        // Direct iteration through the availability array
+        availability.forEach((range) => {
             // Parse start and end times
             const startTime = parse(range.start, "HH:mm", new Date())
             const endTime = parse(range.end, "HH:mm", new Date())
@@ -111,7 +109,7 @@ export default function TimeSlots({
     }
 
     return (
-        <div className="time-slots overflow-y-auto max-h-[400px] pr-1">
+        <div className="time-slots overflow-y-auto pr-1">
             {renderTimeGroup("Morning", groupedTimeSlots["Morning"])}
             {renderTimeGroup("Afternoon", groupedTimeSlots["Afternoon"])}
             {renderTimeGroup("Evening", groupedTimeSlots["Evening"])}

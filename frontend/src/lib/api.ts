@@ -191,6 +191,43 @@ export const scheduleByEventIdQuery = (eventId: string, month?: string) =>
 		queryFn: () => getScheduleByEventId(eventId, month),
 		staleTime: 2 * 60 * 1000,
 	});
+
+async function getDayAvailability(eventId: string, date: string) {
+	const availabilityResult = await tryCatch(
+		api.schedule.day[":eventId{[0-9]+}"][
+			":date{\\d{4}-\\d{2}-\\d{2}}"
+		].$get({
+			param: {
+				eventId,
+				date,
+			},
+		}),
+	);
+
+	if (!availabilityResult.data) {
+		throw new ServerError();
+	}
+
+	if (availabilityResult.data.status === 404) {
+		throw new NotFoundError("day availability not found");
+	}
+
+	if (!availabilityResult.data.ok) {
+		throw new ServerError("Something went wrong");
+	}
+
+	const dayAvailability = await availabilityResult.data.json();
+
+	return dayAvailability;
+}
+
+export const dayAvailabilityQuery = (eventId: string, date: string) =>
+	queryOptions({
+		queryKey: ["get-day-availability", eventId, date],
+		queryFn: () => getDayAvailability(eventId, date),
+		staleTime: 2 * 60 * 1000,
+	});
+
 async function getAllFaculty() {
 	const res = await api.faculty.$get();
 	if (!res.ok) {
