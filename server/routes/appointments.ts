@@ -4,7 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
 import { facultyExists, getUser } from "../kinde";
-import { appointments } from "../db/schema/appointments";
+import { appointments } from "../db/schema/schema";
 import {
 	createAppointmentSchema,
 	insertAppointmentSchema,
@@ -125,10 +125,12 @@ export const appointmentRoute = new Hono()
 		zValidator("json", createAppointmentSchema),
 		async (c) => {
 			const appointment = c.req.valid("json");
+            const userId = c.var.user.id
 
 			const validatedAppointment =
 				await insertAppointmentSchema.parseAsync({
 					...appointment,
+                    userId
 				});
 
 			const result = await db

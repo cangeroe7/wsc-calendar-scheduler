@@ -52,12 +52,13 @@ export const appointments = t.pgTable("appointments", {
 		.references(() => faculty.id, { onDelete: "cascade" }),
 	startTime: t.timestamp("start_time").notNull(),
 	endTime: t.timestamp("end_time").notNull(),
+    title: t.varchar("title").notNull(),
+    description: t.varchar("description", {length: 1000}),
 	studentId: t.varchar("student_id").notNull(),
 	createdAt: t.timestamp("created_at").defaultNow(),
 	updatedAt: t
 		.timestamp("updated_at")
 		.defaultNow()
-        .notNull()
 		.$onUpdate(() => sql`now()`),
 });
 
@@ -88,7 +89,7 @@ export const appointmentEvents = t.pgTable(
 			.integer("faculty_id")
 			.notNull()
 			.references(() => faculty.id),
-		name: t.varchar("name").notNull(),
+		name: t.varchar("name"),
 		durationMinutes: t.integer("duration_minutes").notNull().default(30),
 		bookingInterval: t.integer("booking_interval").notNull().default(30),
 		location: t.varchar("location"),

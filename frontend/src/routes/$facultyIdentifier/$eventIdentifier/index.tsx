@@ -359,7 +359,7 @@ function BookingCalendar() {
                                                             params: {
                                                                 facultyIdentifier: facultyIdentifier,
                                                                 eventIdentifier: eventIdentifier,
-                                                                appointmentDatetime: new Date(selectedTime ?? "").toString(),
+                                                                appointmentDatetime: `${date}T${selectedTime}`,
                                                             },
                                                         })
                                                     }
@@ -651,14 +651,17 @@ function BookingCalendar() {
                                                     <div className="mt-auto pt-3">
                                                         <Button
                                                             className="w-full cursor-pointer"
-                                                            onClick={() => navigate({
-                                                                to: "/$facultyIdentifier/$eventIdentifier/$appointmentDatetime",
-                                                                params: {
-                                                                    facultyIdentifier: facultyIdentifier,
-                                                                    eventIdentifier: eventIdentifier,
-                                                                    appointmentDatetime: new Date(selectedTime ?? "").toString(),
-                                                                }
-                                                            })}
+                                                            onClick={() => {
+                                                                navigate({
+                                                                    to: "/$facultyIdentifier/$eventIdentifier/$appointmentDatetime",
+                                                                    params: {
+                                                                        facultyIdentifier: facultyIdentifier,
+                                                                        eventIdentifier: eventIdentifier,
+                                                                        appointmentDatetime: `${date}T${selectedTime}`,
+                                                                    }
+                                                                })
+                                                            }
+                                                            }
                                                             disabled={!selectedTime}
                                                         >
                                                             Next
@@ -856,7 +859,7 @@ function BookingCalendar() {
                                                                     params: {
                                                                         facultyIdentifier: facultyIdentifier,
                                                                         eventIdentifier: eventIdentifier,
-                                                                        appointmentDatetime: new Date(selectedTime ?? "").toString(),
+                                                                        appointmentDatetime: `${date}T${selectedTime}`,
                                                                     }
                                                                 })}
                                                                 disabled={!selectedTime}

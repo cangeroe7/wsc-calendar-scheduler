@@ -9,7 +9,7 @@ import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { faculty } from "./db/schema/faculty";
+import { faculty } from "./db/schema/schema";
 
 const KindeEnv = z.object({
     KINDE_DOMAIN: z.string(),
@@ -114,7 +114,10 @@ export const validateEmailDomain = createMiddleware<Env>(async (c, next) => {
         const user = await kindeClient.getUserProfile(manager);
 
         if (!user.email?.endsWith("@wsc.edu")) {
-            return c.json({ error: "Only wayne state college emails register" }, 403);
+            return c.json(
+                { error: "Only wayne state college emails register" },
+                403,
+            );
         }
         await next();
     } catch (error) {

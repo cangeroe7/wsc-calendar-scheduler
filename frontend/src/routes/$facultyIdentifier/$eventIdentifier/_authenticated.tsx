@@ -19,7 +19,6 @@ export const Route = createFileRoute('/$facultyIdentifier/$eventIdentifier/_auth
 
 function Component() {
     const { user } = Route.useRouteContext();
-    console.log(user)
     if (!user) {
         return <Login />;
     }

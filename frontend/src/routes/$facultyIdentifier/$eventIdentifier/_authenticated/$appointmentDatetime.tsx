@@ -15,22 +15,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { createFileRoute } from "@tanstack/react-router";
 import { tryCatch } from "@server/utils/utils";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { notFound, redirect } from "@tanstack/react-router";
-import { 
+import {
     facultyMemberByIdentiferQueryOptions,
     eventByIdentifierAndFacultyIdQuery,
-    userQueryOptions
+    userQueryOptions,
+    createAppointment
 } from "@/lib/api";
 import { NotFoundError } from "@/lib/errors";
 import NotFound from "@/components/NotFound";
 import TruncatedText from "@/components/TruncatedText";
+import { capitalize } from "@/lib/utils";
 
 export const Route = createFileRoute("/$facultyIdentifier/$eventIdentifier/_authenticated/$appointmentDatetime")({
     loader: async ({ context, params }) => {
         const { facultyIdentifier, eventIdentifier, appointmentDatetime } = params;
         const queryClient = context.queryClient;
-        
+
 
         try {
             // Fetch user data
@@ -98,14 +100,14 @@ function ConfirmAppointment() {
         appointmentStart,
         appointmentEnd
     } = Route.useLoaderData();
+    const { user } = Route.useRouteContext()
 
-    const [courseName, setCourseName] = useState("");
-    const [description, setDescription] = useState("");
+    const [title, setTitle] = useState<string | null>(null);
+    const [description, setDescription] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const navigate = useNavigate();
-    
+
     // Check if screen is mobile (≤ 650px)
     const isMobile = useMediaQuery("(max-width: 650px)");
     // Check if screen is tablet (≤ 1000px)
@@ -114,21 +116,35 @@ function ConfirmAppointment() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        
-        // Simulating API call for booking confirmation
-        setTimeout(() => {
-            setIsSubmitting(false);
+
+        try {
+            const appointmentDetails = {
+                eventId: event.id,
+                facultyId: facultyMember.id,
+                title: title ?? `Appointment with ${capitalize(user!.given_name) + " " + capitalize(user!.family_name)}`,
+                description,
+                startTime: appointmentStart,
+                endTime: appointmentEnd,
+            }
+            // Simulating API call for booking confirmation
+            const createAppointmentResult = await tryCatch(createAppointment({ value: appointmentDetails }))
+
+            if (createAppointmentResult.error) {
+                throw Error(createAppointmentResult.error.message)
+
+            }
+
+            if (!createAppointmentResult.data) {
+                setIsSuccess(false);
+            }
+
             setIsSuccess(true);
-            
-            // Redirect after success display (in a real app, you would redirect after API confirms booking)
-            setTimeout(() => {
-                navigate({
-                    to: "/$facultyIdentifier",
-                    params: { facultyIdentifier }
-                });
-            }, 2000);
-        }, 1500);
-    };
+        } catch (error) {
+            throw error
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     const formatTime = (date: Date) => {
         return format(date, "h:mm a");
@@ -140,16 +156,15 @@ function ConfirmAppointment() {
 
     // Shared back button component with consistent styling
     const BackButton = () => (
-        <Link to="/$facultyIdentifier/$eventIdentifier" 
-              params={{ facultyIdentifier, eventIdentifier }}
-              search={{ back: true, date: format(appointmentStart, "yyyy-MM-dd") }}>
+        <Link to="/$facultyIdentifier/$eventIdentifier"
+            params={{ facultyIdentifier, eventIdentifier }}
+            search={{ back: true, date: format(appointmentStart, "yyyy-MM-dd") }}>
             <Button
                 variant="ghost"
                 size="default"
                 className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1"
             >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
             </Button>
         </Link>
     );
@@ -191,7 +206,7 @@ function ConfirmAppointment() {
                                     <h2 className="text-lg font-bold text-black mb-3">
                                         {event.name}
                                     </h2>
-                                    
+
                                     <div className="space-y-3 text-sm">
                                         <div className="flex items-center gap-3">
                                             <Calendar className="h-4 w-4 text-gray-600" />
@@ -216,33 +231,31 @@ function ConfirmAppointment() {
                                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Course Name
+                                            Title
                                         </label>
                                         <Input
-                                            value={courseName}
-                                            onChange={(e) => setCourseName(e.target.value)}
-                                            placeholder="Enter course name"
+                                            value={title ?? ""}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            placeholder="Enter title"
                                             className="w-full"
-                                            required
                                         />
                                     </div>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             What would you like to discuss?
                                         </label>
                                         <Textarea
-                                            value={description}
+                                            value={description ?? ""}
                                             onChange={(e) => setDescription(e.target.value)}
                                             placeholder="Briefly describe what you'd like to discuss during this appointment"
                                             className="w-full min-h-32"
-                                            required
                                         />
                                     </div>
 
-                                    <Button 
-                                        type="submit" 
-                                        className="w-full mt-6" 
+                                    <Button
+                                        type="submit"
+                                        className="w-full mt-6"
                                         disabled={isSubmitting}
                                     >
                                         {isSubmitting ? "Confirming..." : "Confirm Appointment"}
@@ -255,7 +268,7 @@ function ConfirmAppointment() {
                     // Tablet and Desktop views
                     <div className={`overflow-hidden rounded-lg bg-white border-gray-300 border-1 shadow-lg 
                         ${isTablet ? "w-full max-w-[700px]" : "w-[900px]"}`}>
-                        
+
                         {/* Conditional rendering for success state */}
                         {isSuccess ? (
                             <div className="p-12 flex flex-col items-center justify-center text-center">
@@ -281,7 +294,7 @@ function ConfirmAppointment() {
                                         Confirm Your Appointment
                                     </h2>
                                 </div>
-                                
+
                                 <div className={`flex ${isTablet ? "flex-col" : "flex-row"}`}>
                                     {/* Appointment details panel */}
                                     <div className={`p-6 ${isTablet ? "border-b" : "border-r"} border-gray-300 
@@ -299,7 +312,7 @@ function ConfirmAppointment() {
                                                         .join("")}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            
+
                                             <div>
                                                 <h3 className="text-base font-medium text-gray-700">
                                                     {facultyMember.name}
@@ -309,7 +322,7 @@ function ConfirmAppointment() {
                                                 </h2>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-4 mb-6">
                                             <div className="flex items-center gap-3">
                                                 <Calendar className="h-5 w-5 text-gray-600" />
@@ -330,51 +343,49 @@ function ConfirmAppointment() {
                                                 <span className="text-black">Eastern time - US & Canada</span>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="mt-6 text-gray-700">
-                                            <TruncatedText 
-                                                text={event.description || "No description provided."} 
-                                                limit={200} 
+                                            <TruncatedText
+                                                text={event.description || "No description provided."}
+                                                limit={200}
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     {/* Form panel */}
                                     <div className={`p-6 ${isTablet ? "w-full" : "w-1/2"}`}>
                                         <h3 className="text-lg font-medium text-black mb-6">
                                             Additional Information
                                         </h3>
-                                        
+
                                         <form onSubmit={handleSubmit} className="space-y-6">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    Course Name
+                                                    Title
                                                 </label>
                                                 <Input
-                                                    value={courseName}
-                                                    onChange={(e) => setCourseName(e.target.value)}
-                                                    placeholder="Enter course name"
+                                                    value={title ?? ""}
+                                                    onChange={(e) => setTitle(e.target.value)}
+                                                    placeholder="Enter title"
                                                     className="w-full"
-                                                    required
                                                 />
                                             </div>
-                                            
+
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                                     What would you like to discuss?
                                                 </label>
                                                 <Textarea
-                                                    value={description}
+                                                    value={description ?? ""}
                                                     onChange={(e) => setDescription(e.target.value)}
                                                     placeholder="Briefly describe what you'd like to discuss during this appointment"
                                                     className="w-full min-h-36"
-                                                    required
                                                 />
                                             </div>
-                                            
-                                            <Button 
-                                                type="submit" 
-                                                className="w-full mt-8" 
+
+                                            <Button
+                                                type="submit"
+                                                className="w-full mt-8"
                                                 disabled={isSubmitting}
                                             >
                                                 {isSubmitting ? "Confirming..." : "Confirm Appointment"}
