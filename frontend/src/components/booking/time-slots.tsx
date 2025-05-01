@@ -95,8 +95,8 @@ export default function TimeSlots({
                     {slots.map((slot) => (
                         <Button
                             key={slot.time}
-                            variant={selectedTime === slot.time ? "default" : "outline"}
-                            className={`text-sm justify-start px-4 py-2 h-auto cursor-pointer ${selectedTime === slot.time ? "bg-primary text-primary-foreground" : "text-black"
+                            variant={selectedTime === slot.time ? "default" : "ghost"}
+                            className={`text-sm justify-start px-4 py-2 h-auto cursor-pointer ${selectedTime === slot.time ? "bg-primary text-primary-foreground" : "hover:bg-gray-200 text-black border-[1px] border-black/30"
                                 }`}
                             onClick={() => onSelectTime(slot.time)}
                         >
