@@ -90,7 +90,7 @@ export default function TimeSlots({
 
         return (
             <div className="mb-4">
-                <h3 className="mb-2 text-sm font-medium text-gray-500">{title}</h3>
+                <h3 className="mb-2 text-sm  font-medium text-gray-500">{title}</h3>
                 <div className="flex flex-col space-y-2">
                     {slots.map((slot) => (
                         <Button

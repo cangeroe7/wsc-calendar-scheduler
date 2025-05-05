@@ -15,11 +15,11 @@ export function FacultyGrid({
             {facultyList.map((faculty) => (
                 <div
                     key={faculty.id}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-[400px] w-full"
                     onClick={() => onSelectFaculty(faculty)}
                 >
-                    <div className="p-4 flex flex-col items-center">
-                        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-[#FFC629]">
+                    <div className="p-4 flex flex-col items-center h-full">
+                        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 shadow-lg">
                             {faculty.photoUrl ? (
                                 <img
                                     src={faculty.photoUrl || "/placeholder.svg"}
@@ -35,9 +35,9 @@ export function FacultyGrid({
                             )}
                         </div>
                         <h2 className="text-xl font-bold text-center">{faculty.name}</h2>
-                        <p className="text-gray-600 mb-2">{faculty.title}</p>
-                        <p className="text-gray-500">{faculty.department ?? ""}</p>
-                        <div className="mt-2 text-sm text-gray-700">
+                        <p className="text-black/70 mb-2">{faculty.title}</p>
+                        <p className="text-gray-500 text-center">{faculty.department ?? ""}</p>
+                        <div className="mt-2 text-sm text-black/70">
                             <p className="mb-1 flex items-center">
                                 <Mail className="h-3 w-3 mr-1" />
                                 {faculty.email}
@@ -55,7 +55,10 @@ export function FacultyGrid({
                                 </p>
                             )}
                         </div>
-                        <Button className="mt-4 bg-[#FFC629] text-black hover:bg-[#e6b325]">Select</Button>
+
+                        <div className="mt-auto pt-4 w-full">
+                            <Button className="w-full bg-[#FFC629] text-black hover:bg-[#e6b325] cursor-pointer">Select</Button>
+                        </div>
                     </div>
                 </div>
             ))}

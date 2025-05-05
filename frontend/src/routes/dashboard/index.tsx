@@ -2,13 +2,11 @@ import { useState } from "react";
 import { createFileRoute, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import type { Department, Faculty } from "@server/sharedTypes";
 
-import { DashboardHeader } from "@/components/DashboardHeader";
 import { SearchBar } from "@/components/SearchBar";
 import { FacultyGrid } from "@/components/FacultyGrid";
 import { getAllFacultyQueryOptions, userQueryOptions } from "@/lib/api";
 import NotFound from "@/components/NotFound";
-import { departmentEnum } from "@server/db/schema/faculty";
-import { capitalize } from "@/lib/utils";
+import { departmentEnum } from "@server/db/schema/schema";
 
 
 const departments = departmentEnum.enumValues;
@@ -40,7 +38,7 @@ export const Route = createFileRoute('/dashboard/')({
 function Dashboard() {
     const navigate = useNavigate();
 
-    const { facultyMembers, user } = Route.useLoaderData();
+    const { facultyMembers } = Route.useLoaderData();
 
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null)
@@ -58,23 +56,23 @@ function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#D8E6E4]">
-            {/* Header */}
-            <DashboardHeader name={capitalize(user.given_name) + " " + capitalize(user.family_name)} />
-
+        <div>
             {/* Search and Filter Bar */}
-            <SearchBar
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                selectedDepartment={selectedDepartment}
-                setSelectedDepartment={setSelectedDepartment}
-                departmentList={departments}
-            />
+            <div className="sticky top-16 z-11 px-10">
+                <SearchBar
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    selectedDepartment={selectedDepartment}
+                    setSelectedDepartment={setSelectedDepartment}
+                    departmentList={departments}
+                />
+            </div>
 
             {/* Main content */}
-            <main className="@container mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-6">Select a Faculty Member</h1>
-                <FacultyGrid facultyList={filteredFaculty} onSelectFaculty={handleFacultySelect} />
+            <main className="relative z-10 h-[calc(100vh-9rem)] mt-16 px-10 pr-7 overflow-y-auto scrollbar-thin scrollbar-thumb-black/50 scrollbar-track-transparent scrollbar-ab" style={{scrollbarGutter: "stable overlay"}}>
+                <div className="@container mx-auto">
+                    <FacultyGrid facultyList={filteredFaculty} onSelectFaculty={handleFacultySelect} />
+                </div>
             </main>
         </div>
     )

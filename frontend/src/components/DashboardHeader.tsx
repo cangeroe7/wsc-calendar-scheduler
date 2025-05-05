@@ -1,31 +1,30 @@
 import { Link } from "@tanstack/react-router"
 
-import { Calendar, User, LogOut } from "lucide-react"
+import { Calendar, LogOut } from "lucide-react"
 import { Button } from "./ui/button"
 
 
-export function DashboardHeader({name}: {name: string}) {
+export function DashboardHeader({ name }: { name: string | null }) {
     return (
-        <header className="bg-white shadow-md">
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+        <header className="fixed top-0 left-0 right-0 h-20 z-50 pt-6 pb-4 px-10">
+            <div className="container mx-auto h-full">
+                <div className="flex items-center justify-between h-fit">
                     <div className="flex items-center gap-3">
                         <Calendar className="h-8 w-8 text-[#FFC629]" />
                         <h1 className="text-2xl font-bold">Calendar App</h1>
                     </div>
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FFC629]">
-                                <User className="h-5 w-5 text-black" />
+                    {name && (
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-3">
+                                <span>{name}</span>
                             </div>
-                            <span>{name}</span>
+                            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10  bg-gray-300 shadow-lg" asChild>
+                                <Link to="/">
+                                    <LogOut className="h-5 w-5 text-black/70" />
+                                </Link>
+                            </Button>
                         </div>
-                        <Button variant="outline" size="icon" className="rounded-full h-10 w-10 border-gray-200" asChild>
-                            <Link to="/">
-                                <LogOut className="h-5 w-5 text-gray-600" />
-                            </Link>
-                        </Button>
-                    </div>
+                    )}
                 </div>
             </div>
         </header>

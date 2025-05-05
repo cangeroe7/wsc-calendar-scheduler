@@ -77,7 +77,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
                                     .join("")}
                             </AvatarFallback>
                         </Avatar>
-                        <h3 className="text-lg font-medium text-gray-600">
+                        <h3 className="text-lg font-medium text-black/75">
                             {facultyMember.name}
                         </h3>
                         <h2 className="mb-6 text-2xl font-bold text-black">
@@ -103,7 +103,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
             </div>
 
             {/* Right Panel - Combined Date & Time Selection */}
-            <div className="flex flex-1 transition-all duration-300 ease-in-out">
+            <div className="flex flex-1 justify-center transition-all duration-300 ease-in-out">
                 {/* Date Selection */}
                 <div className="select-none p-6 bg-white">
                     <h2 className="mb-6 text-center text-xl font-semibold text-black">
@@ -115,7 +115,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
                             variant="ghost"
                             size="icon"
                             onClick={handlePreviousMonth}
-                            className="border-[2px] border-black/20 text-black hover:bg-black/20 rounded-full disabled:border-[0px] disabled:bg-white"
+                            className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
                             disabled={
                                 effectiveStart.getTime() >=
                                 currentMonth.getTime()
@@ -133,7 +133,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
                             variant="ghost"
                             size="icon"
                             onClick={handleNextMonth}
-                            className="border-[2px] border-black/20 text-black hover:bg-black/20 rounded-full disabled:border-[0px] disabled:bg-white"
+                            className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
                             disabled={
                                 new Date(
                                     currentMonth.getFullYear(),
@@ -217,7 +217,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
 
                                     <div className="mt-auto pt-4.5">
                                         <Button
-                                            className="shadow-md shadow-black/40 w-full cursor-pointer"
+                                            className="shadow-md w-full cursor-pointer"
                                             onClick={() =>
                                                 navigate({
                                                     to: "/$facultyIdentifier/$eventIdentifier/$appointmentDatetime",

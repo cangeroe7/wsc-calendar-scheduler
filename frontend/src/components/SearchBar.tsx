@@ -19,36 +19,34 @@ export function SearchBar({
     departmentList: Department[]
 }) {
     return (
-        <div className="bg-[#FFC629] p-4 shadow-md">
-            <div className="container mx-auto flex flex-row items-center gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                    <Input
-                        type="text"
-                        placeholder="Search faculty by name..."
-                        className="pl-10 bg-white border-none"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <div className="w-64">
-                    <Select
-                        value={selectedDepartment || "All Departments"}
-                        onValueChange={(value) => setSelectedDepartment(value === "All Departments" ? null : (value as Department))}
-                    >
-                        <SelectTrigger className="bg-white border-none">
-                            <SelectValue placeholder="Filter by department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All Departments">All Departments</SelectItem>
-                            {departmentList.map((department) => (
-                                <SelectItem key={department} value={department}>
-                                    {department}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+        <div className="container mx-auto flex flex-row items-center gap-4 py-4">
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <Input
+                    type="text"
+                    placeholder="Search faculty by name..."
+                    className="pl-10 bg-white border-none"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+            <div className="w-fit">
+                <Select
+                    value={selectedDepartment || "All Departments"}
+                    onValueChange={(value) => setSelectedDepartment(value === "All Departments" ? null : (value as Department))}
+                >
+                    <SelectTrigger className="bg-white border-none">
+                        <SelectValue placeholder="Filter by department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="All Departments">All Departments</SelectItem>
+                        {departmentList.map((department) => (
+                            <SelectItem key={department} value={department}>
+                                {department}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
         </div>
     )

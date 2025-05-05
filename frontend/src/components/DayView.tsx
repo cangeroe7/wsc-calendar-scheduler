@@ -55,7 +55,6 @@ export function DayView({
                 {(() => {
                     const dateAppointments = appointments?.filter(
                         (appointment) =>
-                            appointment.status === "available" && // Assuming only available are passed, but double-check
                             new Date(appointment.startTime).toDateString() === selectedDate.toDateString()
                     ).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()) || [];
 

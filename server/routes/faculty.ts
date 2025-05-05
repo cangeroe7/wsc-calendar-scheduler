@@ -41,6 +41,10 @@ export const facultyRoute = new Hono()
 				where: eq(appointmentEvents.facultyId, facultyId),
 			});
 
+			if (!events) {
+				return c.json("Not Found", 404);
+			}
+
 			return c.json(events, 200);
 		} catch (error) {
 			return c.json("Internal server error", 500);

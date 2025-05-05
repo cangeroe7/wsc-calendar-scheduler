@@ -107,6 +107,51 @@ export const facultyMemberByIdentiferQueryOptions = (identifier: string) =>
 		staleTime: Infinity,
 	});
 
+async function getFacultyEventsById(facultyId: number) {
+	const eventsResult = await tryCatch(
+		api.faculty.events[":id{[0-9]+}"].$get({
+			param: {
+				id: facultyId.toString(),
+			},
+		}),
+	);
+
+	if (!eventsResult.data) {
+		throw new ServerError();
+	}
+
+	if (eventsResult.data.status === 404) {
+		throw new NotFoundError("Events not found");
+	}
+
+	if (!eventsResult.data.ok) {
+		throw new ServerError("Something went wrong");
+	}
+
+	const rawEvents = await eventsResult.data.json();
+
+	const events = rawEvents.map((rawEvent) => {
+		return {
+			...rawEvent,
+			startDate: rawEvent.startDate
+				? new Date(rawEvent.startDate)
+				: new Date(-8640000000000000), // Earliest possible JS date
+			endDate: rawEvent.endDate
+				? new Date(rawEvent.endDate)
+				: new Date(8640000000000000), // Latest possible JS date }
+		};
+	});
+
+	return events;
+}
+
+export const facultyEventsById = (facultyId: number) =>
+	queryOptions({
+		queryKey: ["get-faculty-events-by-id", facultyId],
+		queryFn: () => getFacultyEventsById(facultyId),
+		staleTime: Infinity,
+	});
+
 async function getEventByIdentifierAndFacultyId(
 	identifier: string,
 	facultyId: number,

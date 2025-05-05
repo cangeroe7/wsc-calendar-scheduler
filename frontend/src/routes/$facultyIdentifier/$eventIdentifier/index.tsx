@@ -254,10 +254,10 @@ function BookingCalendar() {
 
     return (
         <div
-            className={`flex min-h-screen flex-col items-center ${isMobile ? "bg-white p-0" : "bg-slate-100 p-4"}`}
+            className={`flex max-h-screen flex-col items-center ${isMobile ? "bg-white p-0" : "p-4"}`}
         >
             <div
-                className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full pt-32"}`}
+                className={`flex justify-center ${isMobile ? "w-full h-screen" : `w-full ${isTablet ? "pt-[12vh]" : "pt-[20vh]"}`} `}
             >
                 {isMobile ? (
                     <MobileBooking props={{

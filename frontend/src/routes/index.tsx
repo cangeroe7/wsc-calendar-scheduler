@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#D8E6E4] p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
         <div className="flex flex-col items-center justify-center space-y-2 text-center">
           <Calendar className="h-16 w-16 text-[#FFC629]" />

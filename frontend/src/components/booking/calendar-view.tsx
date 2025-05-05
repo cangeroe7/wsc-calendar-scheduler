@@ -78,7 +78,7 @@ export default function CalendarView({
                             size="sm"
                             className={`h-10 w-10 p-0 rounded-full 
                 ${isDisabled ? "opacity-50 cursor-not-allowed" : "bg-primary/40"}
-                ${selectedDate && day.toISOString().slice(0,10) === selectedDate.toISOString().slice(0,10) ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : "cursor-pointer"} 
+                ${selectedDate && day.toISOString().slice(0,10) === selectedDate.toISOString().slice(0,10) ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : "cursor-pointer hover:bg-black/10"} 
                 ${!isCurrentMonth ? "opacity-0 pointer-events-none" : ""}`}
                             onClick={() => !isDisabled && onSelectDate(cloneDay)}
                             disabled={isDisabled}

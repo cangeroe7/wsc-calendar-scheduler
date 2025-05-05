@@ -173,7 +173,7 @@ export function MobileBooking({ props }: { props: MobileBookingProps }) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={handlePreviousMonth}
-                                className="bg-primary/40 text-black hover:bg-primary/70 rounded-full disabled:bg-white"
+                                className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
                                 disabled={
                                     effectiveStart.getTime() >=
                                     currentMonth.getTime()
@@ -188,7 +188,7 @@ export function MobileBooking({ props }: { props: MobileBookingProps }) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={handleNextMonth}
-                                className="bg-primary/40 text-black hover:bg-primary/70 rounded-full disabled:bg-white"
+                                className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
                                 disabled={
                                     new Date(
                                         currentMonth.getFullYear(),

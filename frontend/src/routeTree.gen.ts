@@ -14,7 +14,6 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
-import { Route as ScheduleIdentifierImport } from './routes/$scheduleIdentifier'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardIndexImport } from './routes/dashboard/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
@@ -37,12 +36,6 @@ const FacultyIdentifierEventIdentifierImport = createFileRoute(
 
 const AuthenticatedRoute = AuthenticatedImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const ScheduleIdentifierRoute = ScheduleIdentifierImport.update({
-  id: '/$scheduleIdentifier',
-  path: '/$scheduleIdentifier',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -136,13 +129,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/$scheduleIdentifier': {
-      id: '/$scheduleIdentifier'
-      path: '/$scheduleIdentifier'
-      fullPath: '/$scheduleIdentifier'
-      preLoaderRoute: typeof ScheduleIdentifierImport
       parentRoute: typeof rootRoute
     }
     '/_authenticated': {
@@ -269,7 +255,6 @@ const FacultyIdentifierEventIdentifierRouteWithChildren =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '': typeof AuthenticatedRoute
   '/$facultyIdentifier': typeof FacultyIdentifierIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -285,7 +270,6 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '': typeof AuthenticatedRoute
   '/$facultyIdentifier': typeof FacultyIdentifierIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -301,7 +285,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/$scheduleIdentifier': typeof ScheduleIdentifierRoute
   '/_authenticated': typeof AuthenticatedRoute
   '/$facultyIdentifier/': typeof FacultyIdentifierIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -320,7 +303,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$scheduleIdentifier'
     | ''
     | '/$facultyIdentifier'
     | '/admin'
@@ -335,7 +317,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$scheduleIdentifier'
     | ''
     | '/$facultyIdentifier'
     | '/admin'
@@ -349,7 +330,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/$scheduleIdentifier'
     | '/_authenticated'
     | '/$facultyIdentifier/'
     | '/admin/'
@@ -367,7 +347,6 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ScheduleIdentifierRoute: typeof ScheduleIdentifierRoute
   AuthenticatedRoute: typeof AuthenticatedRoute
   FacultyIdentifierIndexRoute: typeof FacultyIdentifierIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -381,7 +360,6 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ScheduleIdentifierRoute: ScheduleIdentifierRoute,
   AuthenticatedRoute: AuthenticatedRoute,
   FacultyIdentifierIndexRoute: FacultyIdentifierIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -406,7 +384,6 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/$scheduleIdentifier",
         "/_authenticated",
         "/$facultyIdentifier/",
         "/admin/",
@@ -420,9 +397,6 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/$scheduleIdentifier": {
-      "filePath": "$scheduleIdentifier.tsx"
     },
     "/_authenticated": {
       "filePath": "_authenticated.tsx"

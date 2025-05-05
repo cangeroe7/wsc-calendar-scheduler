@@ -61,7 +61,7 @@ export function TabletBooking({ props }: { props: TabletBookingProps }) {
                 )}
 
                 {/* Centered details with padding to avoid overlap with back button */}
-                <div className="flex justify-center ">
+                <div className="flex justify-center">
                     <div className="flex items-center gap-4 pt-4">
                         {/* Avatar and Name */}
                         <Avatar className="h-16 w-16 shadow-black/35 shadow-md">
@@ -112,77 +112,77 @@ export function TabletBooking({ props }: { props: TabletBookingProps }) {
 
             {/* Calendar Section */}
             <div
-                className={`select-none bg-white mx-2 ${expanded ? "flex" : "block px-32"}`}
-            >
-                <div
-                    className={`m-6 ${expanded ? "w-1/2 pr-2" : "w-full"}`}
-                >
-                    <h2 className="mb-4 text-center text-xl font-semibold text-black">
-                        Select a Date & Time
-                    </h2>
+                className={`flex justify-center select-none bg-white ${expanded ? "flex" : "block px-16"}`}
+                    >
+                    <div
+                        className={`m-6 ${expanded ? "w-1/2 pr-2" : "w-full"}`}
+                    >
+                        <h2 className="mb-4 text-center text-xl font-semibold text-black">
+                            Select a Date & Time
+                        </h2>
 
-                    <div className="mb-4 flex items-center justify-between">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={handlePreviousMonth}
-                            className="border-[2px] border-black/20 text-black hover:bg-black/20 rounded-full disabled:border-[0px] disabled:bg-white"
-                            disabled={
-                                effectiveStart.getTime() >=
-                                currentMonth.getTime()
-                            }
-                        >
-                            <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <span className="text-lg font-medium">
-                            {format(
-                                currentMonth,
-                                "MMMM yyyy",
-                            )}
-                        </span>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={handleNextMonth}
-                            className="border-[2px] border-black/20 text-black hover:bg-black/20 rounded-full disabled:border-[0px] disabled:bg-white"
-                            disabled={
-                                new Date(
-                                    currentMonth.getFullYear(),
-                                    currentMonth.getMonth() +
-                                    1,
-                                    1,
-                                ) > event.endDate
-                            }
-                        >
-                            <ChevronRight className="h-5 w-5" />
-                        </Button>
-                    </div>
-
-                    <div className="h-[320px] relative">
-                        {isLoading || isFetching ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-                                <LoadingSpinner size="xxl" />
-                            </div>
-                        ) : null}
-                        <CalendarView
-                            currentMonth={currentMonth}
-                            selectedDate={selectedDate}
-                            onSelectDate={handleDateSelect}
-                            startDate={effectiveStart}
-                            endDate={event.endDate}
-                            availability={
-                                monthAvailability
-                            }
-                        />
-                    </div>
-
-                    <div className="mt-4">
-                        <div className="mb-2 text-sm font-medium text-black">
-                            Time zone
+                        <div className="mb-4 flex items-center justify-between">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handlePreviousMonth}
+                                className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
+                                disabled={
+                                    effectiveStart.getTime() >=
+                                    currentMonth.getTime()
+                                }
+                            >
+                                <ChevronLeft className="h-5 w-5" />
+                            </Button>
+                            <span className="text-lg font-medium">
+                                {format(
+                                    currentMonth,
+                                    "MMMM yyyy",
+                                )}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleNextMonth}
+                                className="border-[2px] border-black/20 text-black hover:bg-black/10 rounded-full disabled:border-[0px] disabled:bg-white enabled:cursor-pointer"
+                                disabled={
+                                    new Date(
+                                        currentMonth.getFullYear(),
+                                        currentMonth.getMonth() +
+                                        1,
+                                        1,
+                                    ) > event.endDate
+                                }
+                            >
+                                <ChevronRight className="h-5 w-5" />
+                            </Button>
                         </div>
-                        <TimezoneSelector />
+
+                        <div className="h-[320px] relative">
+                            {isLoading || isFetching ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+                                    <LoadingSpinner size="xxl" />
+                                </div>
+                            ) : null}
+                            <CalendarView
+                                currentMonth={currentMonth}
+                                selectedDate={selectedDate}
+                                onSelectDate={handleDateSelect}
+                                startDate={effectiveStart}
+                                endDate={event.endDate}
+                                availability={
+                                    monthAvailability
+                                }
+                            />
+                        </div>
+
+                        <div className="mt-4">
+                            <div className="mb-2 text-sm font-medium text-black">
+                                Time zone
+                            </div>
+                            <TimezoneSelector />
+                        </div>
                     </div>
-                </div>
 
                 {/* Tablet Time Selection (side-by-side with calendar when date is selected) */}
                 {expanded && selectedDate && (
@@ -199,7 +199,7 @@ export function TabletBooking({ props }: { props: TabletBookingProps }) {
                             </div>
                         ) : (
                             <>
-                                <div className="max-h-[400px] overflow-auto">
+                                <div className="max-h-[400px] overflow-auto scrollbar-thin">
                                     <TimeSlots
                                         selectedTime={
                                             selectedTime
@@ -248,6 +248,6 @@ export function TabletBooking({ props }: { props: TabletBookingProps }) {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

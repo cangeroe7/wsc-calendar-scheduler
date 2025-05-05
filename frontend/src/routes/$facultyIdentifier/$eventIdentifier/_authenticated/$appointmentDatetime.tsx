@@ -113,7 +113,7 @@ function ConfirmAppointment() {
     // Check if screen is tablet (≤ 1000px)
     const isTablet = useMediaQuery("(max-width: 1000px)");
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
 
@@ -170,7 +170,7 @@ function ConfirmAppointment() {
     );
 
     return (
-        <div className={`flex min-h-screen flex-col items-center ${isMobile ? "bg-white p-0" : "bg-slate-100 p-4"}`}>
+        <div className={`flex min-h-screen flex-col items-center ${isMobile ? "bg-white" : "p-4"}`}>
             <div className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full pt-16"}`}>
                 {isMobile ? (
                     // Mobile layout
