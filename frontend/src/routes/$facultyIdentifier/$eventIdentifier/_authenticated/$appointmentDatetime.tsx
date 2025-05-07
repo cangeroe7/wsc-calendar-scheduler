@@ -162,7 +162,7 @@ function ConfirmAppointment() {
             <Button
                 variant="ghost"
                 size="default"
-                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md px-2 py-1"
+                className="flex rounded-b-full items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1"
             >
                 <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -171,7 +171,7 @@ function ConfirmAppointment() {
 
     return (
         <div className={`flex min-h-screen flex-col items-center ${isMobile ? "bg-white" : "p-4"}`}>
-            <div className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full pt-16"}`}>
+            <div className={`flex justify-center ${isMobile ? "w-full h-screen" : "w-full pt-32"}`}>
                 {isMobile ? (
                     // Mobile layout
                     <div className="w-full h-full flex flex-col">
@@ -266,8 +266,8 @@ function ConfirmAppointment() {
                     </div>
                 ) : (
                     // Tablet and Desktop views
-                    <div className={`overflow-hidden rounded-lg bg-white border-gray-300 border-1 shadow-lg 
-                        ${isTablet ? "w-full max-w-[700px]" : "w-[900px]"}`}>
+                    <div className={`overflow-auto scrollbar-thin scrollbar-thumb-black/50  scrollbar-track-white/0 rounded-lg bg-white border-gray-300 border-1 shadow-lg 
+                        ${isTablet ? "w-full max-w-[700px] h-[calc(100vh-6rem)]" : "w-[900px]"}`}>
 
                         {/* Conditional rendering for success state */}
                         {isSuccess ? (
@@ -286,7 +286,7 @@ function ConfirmAppointment() {
                         ) : (
                             <div className="flex flex-col">
                                 {/* Header with title and back button */}
-                                <div className="p-5 bg-primary relative">
+                                <div className="sticky top-0 z-10 p-5 bg-primary">
                                     <div className="absolute top-5 left-5">
                                         <BackButton />
                                     </div>

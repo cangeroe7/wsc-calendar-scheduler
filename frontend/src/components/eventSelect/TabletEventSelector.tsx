@@ -1,11 +1,11 @@
-import { MapPin, Phone, Mail, Clock, ChevronRight } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, ChevronRight, ArrowLeft } from "lucide-react"
 import { AppointmentEventDated } from "@server/sharedTypes"
-import { useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import type { Faculty } from "@server/sharedTypes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LoadingSpinner } from "../ui/loading-spinner";
 import { format } from "date-fns";
-import { BackButton } from "../booking/BackButton";
+import { Button } from "../ui/button";
 
 interface TabletEventSelectorProps {
     facultyIdentifier: string;
@@ -22,13 +22,26 @@ export default function TabletEventSelector({
 }: TabletEventSelectorProps) {
     const navigate = useNavigate();
 
+    const BackButton = () => (
+        <Link to="/dashboard">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="flex cursor-pointer rounded-full items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1"
+            >
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+        </Link>
+    );
+    const threeevents = [...events, ...events, ...events, ...events, ...events]
+
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col ">
             {/* Tablet Header with back button at top left */}
             <div className="w-full p-5 bg-primary relative">
                 {/* Back button at top left */}
                 <div className="absolute top-5 left-5 z-10">
-                    <BackButton facultyIdentifier={facultyIdentifier} />
+                    <BackButton />
                 </div>
 
                 {/* Centered details with padding to avoid overlap with back button */}
@@ -85,11 +98,11 @@ export default function TabletEventSelector({
                     <p className="text-center text-gray-600 mt-10">This faculty member currently has no bookable events.</p>
                 ) : (
                     <ul className="space-y-4 overflow-auto max-h-[520px] scrollbar-thin p-1 pr-2">
-                        {events.map((ev) => (
+                        {threeevents.map((ev) => (
                             <li key={ev.id} className="border border-black/30 rounded-lg hover:shadow-md transition-shadow duration-150">
                                 <button
                                     type="button"
-                                    className="w-full text-left p-4 flex justify-between items-start gap-4 active:bg-black/10"
+                                    className="w-full text-left p-4 flex justify-between items-start gap-4 active:bg-black/10 cursor-pointer"
                                     onClick={() =>
                                         navigate({
                                             to: "/$facultyIdentifier/$eventIdentifier",

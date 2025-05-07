@@ -192,7 +192,7 @@ export function DesktopBooking({ props }: { props: DesktopBookingProps }) {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="max-h-[370px] overflow-auto">
+                                    <div className="max-h-[370px] overflow-auto scrollbar-thin">
                                         <TimeSlots
                                             selectedTime={
                                                 selectedTime

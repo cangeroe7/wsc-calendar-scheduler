@@ -1,8 +1,9 @@
-import { MapPin, Phone, Mail, User, Clock, ChevronRight } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, Mail, User, Clock, ChevronRight } from "lucide-react"
 import { AppointmentEventDated } from "@server/sharedTypes"
-import { useNavigate } from "@tanstack/react-router"
+import { Link, useNavigate } from "@tanstack/react-router"
 import type { Faculty } from "@server/sharedTypes"
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { Button } from "../ui/button";
 import { format } from "date-fns";
 
 interface DesktopEventSelectorProps {
@@ -19,15 +20,30 @@ export default function DesktopEventSelector({
     isLoadingEvents = false,
 }: DesktopEventSelectorProps) {
     const navigate = useNavigate();
-    const threeEvents = [...events, ...events, ...events, ...events, ...events, ...events, ...events]
+
+    const BackButton = () => (
+        <Link to="/dashboard">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="flex cursor-pointer rounded-full items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1"
+            >
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+        </Link>
+    );
+
+    const threeevents = [...events, ...events, ...events, ...events, ...events]
 
     return (
-
         /* Desktop Layout (> 1000px) */
         <div className="flex">
             {/* Left Panel - Host Information */}
             <div className="w-[325px] border-r border-gray-300 p-6 bg-primary">
                 {/* Desktop back button above other content */}
+                <div className="">
+                    <BackButton />
+                </div>
                 <div className="p-4 flex flex-col items-center h-full">
                     <div className="w-24 h-24 rounded-full overflow-hidden mb-4 shadow-lg">
                         {facultyMember.photoUrl ? (
@@ -84,7 +100,7 @@ export default function DesktopEventSelector({
                     <ul
                         className="grid grid-cols-2 gap-4 max-h-[540px] overflow-auto p-2 scrollbar-thin"
                     >
-                        {threeEvents.map((ev) => (
+                        {threeevents.map((ev) => (
                             <li
                                 key={ev.id}
                                 className="basis-1/2 border border-black/30 rounded-lg hover:shadow-md transition-shadow duration-150"

@@ -33,7 +33,6 @@ function Root() {
             <div className="relative z-10 ">
                 {!isMobile && <DashboardHeader name={user ? capitalize(user.given_name) + " " + capitalize(user.family_name) : null} />}
                     <Outlet />
-                    <TanStackRouterDevtools />
             </div>
         </div>
     )

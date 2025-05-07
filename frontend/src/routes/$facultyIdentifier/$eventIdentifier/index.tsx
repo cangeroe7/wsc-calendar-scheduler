@@ -172,6 +172,7 @@ function BookingCalendar() {
                 ...prev,
                 date: selectedDate?.toISOString().slice(0, 10),
             }),
+            replace: true,
         });
         console.log(selectedDate?.toISOString().slice(0, 10));
     });
